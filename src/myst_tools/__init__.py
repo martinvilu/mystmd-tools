@@ -6,7 +6,13 @@ from myst_tools.generate_guides_index import run_generate_guides_index
 from myst_tools.generate_rules_index import run_generate_rules_index
 
 def main() -> None:
+    import os
+    if not os.path.exists("mystm.yml"):
+        print("Error: El directorio actual no contiene un archivo 'mystm.yml'. Este comando debe ejecutarse desde la raíz del proyecto MyST.", file=sys.stderr)
+        sys.exit(1)
+
     parser = argparse.ArgumentParser(
+
         description="Herramientas unificadas para automatizar material didáctico MyST.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
