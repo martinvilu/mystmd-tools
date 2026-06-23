@@ -43,7 +43,7 @@ Genera un índice detallado (`indice.md`) agrupado por archivo y con enlaces int
 ```bash
 myst-tools gen-apunte [APUNTE_DIR]
 ```
-* **`APUNTE_DIR`** (opcional): Directorio del apunte. Por defecto es `./apunte_2`.
+* **`APUNTE_DIR`** (opcional): Directorio del apunte. Por defecto es `./apunte`.
 
 ### 3. `gen-guides`
 Genera el índice de guías de trabajos prácticos (`indice.md`) leyendo el título del frontmatter o el primer encabezado `#` de cada guía.

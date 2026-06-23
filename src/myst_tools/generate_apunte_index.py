@@ -18,7 +18,7 @@ def extract_headers(content):
     headers = re.findall(header_pattern, content, re.MULTILINE)
     return headers
 
-def run_generate_apunte_index(apunte_dir='./apunte_2'):
+def run_generate_apunte_index(apunte_dir='./apunte'):
     if not os.path.exists(apunte_dir):
         print(f"Error: El directorio '{apunte_dir}' no existe.")
         return
@@ -92,7 +92,7 @@ def run_generate_apunte_index(apunte_dir='./apunte_2'):
 
 def main():
     import sys
-    apunte_dir = sys.argv[1] if len(sys.argv) > 1 else './apunte_2'
+    apunte_dir = sys.argv[1] if len(sys.argv) > 1 else './apunte'
     run_generate_apunte_index(apunte_dir)
 
 if __name__ == "__main__":

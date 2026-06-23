@@ -39,8 +39,8 @@ def main() -> None:
     parser_apunte.add_argument(
         "dir", 
         nargs="?", 
-        default="./apunte_2", 
-        help="Directorio del apunte (apunte_2)."
+        default="./apunte", 
+        help="Directorio del apunte (apunte)."
     )
     
     # Subcomando: gen-guides
