@@ -4,6 +4,10 @@ Herramientas unificadas para automatizar y gestionar el material didáctico escr
 
 Este proyecto está gestionado con [uv](https://github.com/astral-sh/uv).
 
+> [!IMPORTANT]
+> **Requisito de ejecución:** Las herramientas del CLI deben ser ejecutadas desde un directorio que contenga el archivo de configuración `mystm.yml` (es decir, la raíz del proyecto de documentación MyST). Si el archivo no está presente, el comando fallará con un error.
+
+
 ## Instalación
 
 Podés instalar estas herramientas como una herramienta global en tu sistema usando `uv tool`:
