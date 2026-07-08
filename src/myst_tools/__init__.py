@@ -8,12 +8,6 @@ from myst_tools.fix_dup_anchors import run_fix_dup_anchors
 from myst_tools.myst_fmt import run_myst_fmt
 
 def main() -> None:
-    import os
-    # El archivo de configuración de MyST es 'myst.yml'. Corregimos el mensaje de error para que sea consistente con la búsqueda.
-    if not os.path.exists("myst.yml"):
-        print("Error: El directorio actual no contiene un archivo 'myst.yml'. Este comando debe ejecutarse desde la raíz del proyecto MyST.", file=sys.stderr)
-        sys.exit(1)
-
     parser = argparse.ArgumentParser(
         description="Herramientas unificadas para automatizar material didáctico MyST.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -119,6 +113,11 @@ def main() -> None:
     )
     
     args = parser.parse_args()
+    
+    import os
+    if not os.path.exists("myst.yml"):
+        print("Error: El directorio actual no contiene un archivo 'myst.yml'. Este comando debe ejecutarse desde la raíz del proyecto MyST.", file=sys.stderr)
+        sys.exit(1)
     
     if args.command == "add-anchors":
         run_add_anchors(args.dir)
