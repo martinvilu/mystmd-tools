@@ -61,6 +61,29 @@ myst-tools gen-rules [REGLAS_DIR]
 ```
 * **`REGLAS_DIR`** (opcional): Directorio que contiene las reglas de estilo. Por defecto es `./reglas`.
 
+### 5. `fix-anchors`
+Detecta y corrige anclas MyST duplicadas en los archivos Markdown del proyecto. Renombra las definiciones duplicadas anteponiendo el nombre del archivo y actualiza todas las referencias correspondientes.
+
+```bash
+myst-tools fix-anchors [DIR] [OPCIONES]
+```
+* **`DIR`** (opcional): Directorio raíz a escanear. Por defecto es el directorio actual `.`.
+* **Opciones**:
+  * `--dry-run`: Muestra los cambios planificados sin modificar ningún archivo.
+  * `--report`: Solo lista las anclas duplicadas detectadas y finaliza.
+
+### 6. `fmt`
+Formatea archivos MyST Markdown aplicando un límite de 80 caracteres de ancho de línea para la prosa (sin modificar bloques de código) y normalizando el anidamiento y cierre de directivas (guardas).
+
+```bash
+myst-tools fmt [ARCHIVOS/DIR...] [OPCIONES]
+```
+* **`ARCHIVOS/DIR`** (opcional): Archivos o directorios a formatear (acepta múltiples). Si no se especifica y la entrada es interactiva, formatea todos los archivos `.md` del proyecto de forma recursiva. Si la entrada no es interactiva, lee desde la entrada estándar (stdin). Usar `-` para forzar la lectura desde stdin.
+* **Opciones**:
+  * `--check`: Verifica si los archivos necesitan formato (retorna código 1 si requieren cambios).
+  * `--stdout`: Imprime el resultado en la salida estándar en vez de modificar los archivos in-place.
+  * `--width N`: Especifica un ancho de línea personalizado (por defecto 80).
+
 ## Desarrollo
 
 Si querés modificar las herramientas o agregar nuevas funcionalidades, podés ejecutar el CLI en modo desarrollo:
@@ -70,3 +93,4 @@ uv run myst-tools --help
 ```
 
 El backend de construcción utilizado es `hatchling`.
+
