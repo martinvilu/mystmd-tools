@@ -25,6 +25,15 @@ Si preferís ejecutarlo sin instalarlo globalmente:
 uv run myst-tools [comando] [argumentos]
 ```
 
+## Uso General
+
+```bash
+myst-tools [OPCIONES_GLOBALES] [COMANDO] [ARGUMENTOS]
+```
+
+### Opciones Globales:
+* **`-f, --force`**: Fuerza la ejecución del comando seleccionado ignorando la verificación de la existencia de `myst.yml` en el directorio actual.
+
 ## Comandos Disponibles
 
 El comando unificado `myst-tools` provee los siguientes subcomandos:

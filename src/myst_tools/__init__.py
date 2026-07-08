@@ -12,6 +12,11 @@ def main() -> None:
         description="Herramientas unificadas para automatizar material didáctico MyST.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
+    parser.add_argument(
+        "--force", "-f",
+        action="store_true",
+        help="Fuerza la ejecución saliéndose de la verificación de la existencia de 'myst.yml'."
+    )
     
     subparsers = parser.add_subparsers(dest="command", help="Comando a ejecutar", required=True)
     
@@ -115,8 +120,8 @@ def main() -> None:
     args = parser.parse_args()
     
     import os
-    if not os.path.exists("myst.yml"):
-        print("Error: El directorio actual no contiene un archivo 'myst.yml'. Este comando debe ejecutarse desde la raíz del proyecto MyST.", file=sys.stderr)
+    if not args.force and not os.path.exists("myst.yml"):
+        print("Error: El directorio actual no contiene un archivo 'myst.yml'. Este comando debe ejecutarse desde la raíz del proyecto MyST (o usá --force para ignorar esta verificación).", file=sys.stderr)
         sys.exit(1)
     
     if args.command == "add-anchors":
