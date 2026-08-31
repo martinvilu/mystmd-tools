@@ -8,6 +8,13 @@ from myst_tools.generate_guides_index import run_generate_guides_index
 from myst_tools.generate_rules_index import run_generate_rules_index
 from myst_tools.myst_fmt import run_myst_fmt
 
+from myst_tools.languagetool_checker import (
+    analizar_archivo_languagetool,
+    aplicar_autofix_archivo,
+    generar_reporte_markdown,
+    LanguageToolIssue,
+)
+
 __all__ = [
     "app",
     "main",
@@ -17,4 +24,9 @@ __all__ = [
     "run_generate_guides_index",
     "run_generate_rules_index",
     "run_myst_fmt",
+    "analizar_archivo_languagetool",
+    "aplicar_autofix_archivo",
+    "generar_reporte_markdown",
+    "LanguageToolIssue",
 ]
+

@@ -93,6 +93,22 @@ myst-tools fmt [ARCHIVOS/DIR...] [OPCIONES]
   * `--stdout`: Imprime el resultado en la salida estándar en vez de modificar los archivos in-place.
   * `--width N`: Especifica un ancho de línea personalizado (por defecto 80).
 
+### 7. `spellcheck` (alias: `grammar`, `languagetool`)
+Audita y corrige ortografía y gramática en documentos MyST Markdown usando LanguageTool, enmascarando inteligentemente directivas MyST, bloques de código C, matemáticas LaTeX y anclas para evitar falsos positivos.
+
+```bash
+myst-tools spellcheck [ARCHIVOS/DIR...] [OPCIONES]
+```
+* **`ARCHIVOS/DIR`** (opcional): Archivos o directorios a analizar.
+* **Opciones**:
+  * `-f, --fix`: Aplica automáticamente las correcciones sugeridas in-place sobre los archivos.
+  * `-l, --lang`: Código de idioma (por defecto `es-AR`; soporta `es`, `en-US`, etc.).
+  * `-s, --server`: URL de servidor LanguageTool personalizado (por defecto intenta servidor local `http://localhost:8081` y API pública).
+  * `--ignore-words`: Lista de palabras adicionales a ignorar separadas por coma.
+  * `--ignore-rules`: Reglas específicas a deshabilitar separadas por coma.
+  * `--json`: Salida estructurada JSON.
+  * `-o, --md`: Genera reporte en formato Markdown para fusión en Dredd o documentación.
+
 ## Desarrollo
 
 Si querés modificar las herramientas o agregar nuevas funcionalidades, podés ejecutar el CLI en modo desarrollo:
