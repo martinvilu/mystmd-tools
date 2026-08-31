@@ -178,3 +178,53 @@ check-myst_tools:
 ````
 
 Ejecutá `make check-myst_tools` antes de cada commit para asegurar que tu código conserve el estado de aprobación.
+
+---
+
+(manual-myst_tools-arquitectura)=
+## 7. Arquitectura Interna y Mecanismo Técnico
+
+La herramienta **`myst-tools`** implementa un motor de alta precisión basado en:
+
+- **Tecnología Núcleo:** `MyST Markdown AST Parser + 80-Col Prosa Formatter + LanguageTool Spellchecker + Slug Index Generator`.
+- **Aislamiento y Determinismo:** Diseñada para operar sin efectos colaterales en entornos de integración continua (CI), terminales de estudiantes y servidores docentes headless.
+- **Manejo de Errores Pedagógico:** Todo fallo de sintaxis, memoria o lógica se traduce en una acción prescriptiva concreta con su respectiva justificación técnica.
+
+---
+
+(manual-myst_tools-ecosistema)=
+## 8. Integración y Conexión con el Ecosistema
+
+````{note}
+Ninguna herramienta opera de forma aislada. **`myst-tools`** forma parte del pipeline integral de evaluación, verificación y enseñanza de la cátedra.
+````
+
+### Diagrama de Flujo e Interoperabilidad
+
+````{mermaid}
+graph TD
+    DKD[Deckard: Guías de Ejercicios] --> MYST[Myst-Tools: Suite MyST]
+    CRB[Corbel: Documentación TDAs] --> MYST
+    GAF[Gaff / Ripley: Reglas de Estilo] --> MYST
+    MYST -->|Formateo a 80 Columnas| FMT[Prosa Normalizada]
+    MYST -->|Auditoría Lingüística| LT[LanguageTool API]
+    MYST -->|Sitio Web de Cátedra| HTML[Jupyter Book / MyST HTML]
+````
+
+### Matriz de Intercambio de Datos
+
+| Canal | Herramientas Conectadas | Tipo de Datos Transferidos |
+| :--- | :--- | :--- |
+| **Entradas (Inputs)** | - `Apuntes, guías de Deckard, documentación de Corbel, reglas de Gaff` | Código fuente, AST, binarios, testcases, contratos |
+| **Salidas (Outputs)** | - `Jupyter Book / MyST HTML (sitios web de cátedra)` | Informes Markdown, diagnósticos Rich, JSON, actas |
+| **Sincronización** | `deckard`, `corbel`, `gaff`, `moodle-toolbox` | Validación cruzada, flags compartidos y autofix |
+
+### Pipeline de Integración Recomendado
+
+Podés encadenar `myst-tools` con otras herramientas del ecosistema en una única línea de comando:
+
+````{code-block} bash
+# Pipeline de integración típico
+myst-tools fmt apunte/ && myst-tools fix-anchors apunte/ && myst-tools spellcheck apunte/
+````
+
