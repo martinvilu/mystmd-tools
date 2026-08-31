@@ -1,0 +1,180 @@
+---
+title: "Manual de Referencia: myst-tools"
+subtitle: "Myst-Tools — Suite de Normalización, Formateo a 80 Columnas, Anclas e Índices MyST"
+author: "Cátedra de Algoritmos y Programación"
+date: "2026-08-31"
+---
+
+(manual-myst_tools)=
+# Myst-Tools — Suite de Normalización, Formateo a 80 Columnas, Anclas e Índices MyST
+
+````{abstract}
+**Rol en el ecosistema:** Automatización y estandarización de material didáctico en formato MyST Markdown: formateo a 80 columnas respetando directivas, anclas semánticas, generación de índices y corrector LanguageTool.
+````
+
+---
+
+(manual-myst_tools-proposito)=
+## 1. Propósito y Filosofía Pedagógica
+
+La herramienta **`myst-tools`** forma parte del ecosistema oficial de software de la cátedra. Su diseño sigue principios pedagógicos rigurosos:
+
+1. **Evidencia Técnica Directa**: Todo diagnóstico se fundamenta en la norma ISO C (C11/C23), en el modelo de memoria del sistema o en convenciones arquitectónicas formales.
+2. **Acción Correctiva Concreta**: Cada advertencia incluye la prescripción técnica inmediata para resolver el defecto sin recurrir a conjeturas.
+3. **Autonomía del Estudiante**: Facilita la autoevaluación local antes de la entrega final del trabajo práctico.
+4. **Objetividad Docente**: Estandariza la corrección automática eliminando discrepancias subjetivas en la evaluación.
+
+---
+
+(manual-myst_tools-instalacion)=
+## 2. Instalación y Diagnóstico del Entorno
+
+````{important}
+Asegurate de contar con el compilador GCC/Clang y las librerías del sistema instaladas antes de ejecutar `myst-tools`.
+````
+
+Para comprobar el estado de salud de tu entorno de trabajo y las dependencias auxiliares:
+
+````{code-block} bash
+# Comprobación de dependencias del sistema
+myst-tools doctor
+````
+
+Si se detecta la falta de alguna utilidad (como `gdb`, `valgrind`, `clang-format` o `typst`), el comando indicará el paquete exacto a instalar según tu distribución GNU/Linux o entorno MSYS2.
+
+---
+
+(manual-myst_tools-comandos)=
+## 3. Referencia Completa de Comandos CLI
+
+A continuación se detallan los subcomandos principales disponibles en `myst-tools`:
+
+| Sintaxis del Comando | Descripción y Efecto |
+| :--- | :--- |
+| `myst-tools fmt apunte/ [-w 80]` | Formatea la prosa a 80 columnas preservando directivas y código. |
+| `myst-tools fix-anchors .` | Detecta y renombra anclas duplicadas `(slug)=` entre capítulos. |
+| `myst-tools add-anchors docs/` | Inserta anclas automáticas en todos los encabezados Markdown. |
+| `myst-tools gen-apunte apunte/` | Genera el índice temático general `indice.md`. |
+| `myst-tools spellcheck apunte/ --premium` | Audita ortografía y estilo con LanguageTool (local o cloud). |
+
+````{tip}
+Podés agregar el flag `--json` a la mayoría de los comandos para exportar resultados en formato estructurado o `--md` para generar reportes Markdown para el informe de entrega.
+````
+
+---
+
+(manual-myst_tools-tutorial)=
+## 4. Tutorial Paso a Paso con Ejemplos Reales
+
+### Caso de Estudio
+
+Considerá el siguiente fragmento de código representativo:
+
+````{code-block} c
+:linenos:
+// Directiva MyST Markdown formateada por myst-tools
+(seccion-punteros)=
+# Punteros y Gestión de Memoria
+
+```{note}
+Un puntero en C almacena la dirección de memoria de otra variable.
+```
+
+```{code-block} c
+:linenos:
+int x = 10;
+int *p = &x;
+```
+````
+
+### Ejecución de la Herramienta
+
+Ejecutá el análisis desde tu terminal:
+
+````{code-block} bash
+myst-tools fmt apunte/ [-w 80]
+````
+
+### Salida Obtenida en Consola
+
+````{code-block} text
+[✓] 18 archivos formateados a 80 columnas respetando bloques MyST.
+[✓] 0 colisiones de anclas duplicadas detectadas.
+[✓] Índice general generado en apunte/indice.md.
+````
+
+````{note}
+Prestá atención a la explicación pedagógica generada: la herramienta no solo señala la línea del problema, sino que explica la causa raíz y el impacto en memoria o arquitectura.
+````
+
+---
+
+(manual-myst_tools-ejercicios)=
+## 5. Ejercicios Prácticos y Desafíos
+
+Practicá el uso avanzado de **`myst-tools`** resolviendo los siguientes ejercicios:
+
+````{exercise} Desafío 1: Formateo Estándar de Apuntes
+Normalizar el ancho de línea de un capítulo a 80 columnas.
+
+**Instrucción de ejecución:**
+```bash
+myst-tools fmt apunte/capitulo1.md
+```
+````
+
+````{solution} Desafío 1
+```bash
+myst-tools fmt apunte/capitulo1.md
+# Verificá que la operación concluya exitosamente con código de salida 0.
+```
+````
+
+````{exercise} Desafío 2: Resolución de Colisión de Anclas
+Detectar y corregir encabezados con anclas repetidas.
+
+**Instrucción de ejecución:**
+```bash
+myst-tools fix-anchors apunte/
+```
+````
+
+````{solution} Desafío 2
+```bash
+myst-tools fix-anchors apunte/
+# Revisá el archivo generado o el informe en terminal para confirmar la resolución del problema.
+```
+````
+
+````{exercise} Desafío 3: Corrección Ortográfica con LanguageTool
+Auditar la ortografía de la guía de trabajos prácticos.
+
+**Instrucción de ejecución:**
+```bash
+myst-tools spellcheck guias/ --lang es-AR
+```
+````
+
+````{solution} Desafío 3
+```bash
+myst-tools spellcheck guias/ --lang es-AR
+# Comprobá que la salida confirme la ausencia de advertencias o errores pendientes.
+```
+````
+
+---
+
+(manual-myst_tools-makefile)=
+## 6. Integración en el Flujo de Trabajo y Makefile
+
+Para incorporar `myst-tools` de forma automática a tu flujo de desarrollo, agregá la siguiente regla en el `Makefile` de tu proyecto:
+
+````{code-block} makefile
+check-myst_tools:
+	@echo "=== Ejecutando verificación con myst-tools ==="
+	myst-tools check src/ include/
+
+.PHONY: check-myst_tools
+````
+
+Ejecutá `make check-myst_tools` antes de cada commit para asegurar que tu código conserve el estado de aprobación.
