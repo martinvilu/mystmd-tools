@@ -33,6 +33,7 @@ PALABRAS_IGNORADAS_DEFAULT = {
 }
 
 DEFAULT_LANGUAGETOOL_URL = "https://api.languagetool.org/v2/check"
+DEFAULT_LANGUAGETOOL_PREMIUM_URL = "https://api.languagetoolplus.com/v2/check"
 LOCAL_LANGUAGETOOL_URL = "http://localhost:8081/v2/check"
 
 
@@ -117,13 +118,30 @@ def consultar_languagetool(
     texto: str,
     lang: str = "es-AR",
     server_url: Optional[str] = None,
+    username: Optional[str] = None,
+    api_key: Optional[str] = None,
+    premium: bool = False,
     disabled_rules: Optional[Set[str]] = None,
     timeout_sec: float = 10.0,
 ) -> Dict[str, Any]:
-    """Envía una petición a LanguageTool API para analizar texto."""
+    """Envía una petición a LanguageTool API (local, remota o remota paga) para analizar texto."""
+    import os
+    env_server = os.environ.get("LANGUAGETOOL_URL") or os.environ.get("LANGUAGETOOL_SERVER")
+    env_user = os.environ.get("LANGUAGETOOL_USERNAME") or os.environ.get("LANGUAGETOOL_USER")
+    env_key = os.environ.get("LANGUAGETOOL_API_KEY") or os.environ.get("LANGUAGETOOL_KEY")
+    env_premium = os.environ.get("LANGUAGETOOL_PREMIUM", "").lower() in ("1", "true", "yes")
+
+    final_server = server_url or env_server
+    final_user = username or env_user
+    final_key = api_key or env_key
+    is_premium = premium or env_premium or bool(final_user and final_key)
+
     urls_to_try = []
-    if server_url:
-        urls_to_try.append(server_url)
+    if final_server:
+        urls_to_try.append(final_server)
+    elif is_premium:
+        urls_to_try.append(DEFAULT_LANGUAGETOOL_PREMIUM_URL)
+        urls_to_try.append(DEFAULT_LANGUAGETOOL_URL)
     else:
         urls_to_try.append(LOCAL_LANGUAGETOOL_URL)
         urls_to_try.append(DEFAULT_LANGUAGETOOL_URL)
@@ -132,6 +150,10 @@ def consultar_languagetool(
         "text": texto,
         "language": lang,
     }
+    if final_user:
+        data["username"] = final_user
+    if final_key:
+        data["apiKey"] = final_key
     if disabled_rules:
         data["disabledRules"] = ",".join(sorted(disabled_rules))
 
@@ -163,6 +185,9 @@ def analizar_archivo_languagetool(
     file_path: Path,
     lang: str = "es-AR",
     server_url: Optional[str] = None,
+    username: Optional[str] = None,
+    api_key: Optional[str] = None,
+    premium: bool = False,
     ignore_words: Optional[Set[str]] = None,
     ignore_rules: Optional[Set[str]] = None,
 ) -> List[LanguageToolIssue]:
@@ -184,6 +209,9 @@ def analizar_archivo_languagetool(
             texto_limpio,
             lang=lang,
             server_url=server_url,
+            username=username,
+            api_key=api_key,
+            premium=premium,
             disabled_rules=reglas_deshabilitadas,
         )
     except Exception as e:

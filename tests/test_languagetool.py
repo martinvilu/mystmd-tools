@@ -197,3 +197,51 @@ def test_cli_spellcheck_y_report(tmp_path: Path, monkeypatch):
     res_rep = runner.invoke(app, ["report", str(doc)])
     assert res_rep.exit_code == 0
     assert "Auditoría de Ortografía y Gramática" in res_rep.output
+
+
+def test_consultar_languagetool_premium_y_env_vars(monkeypatch):
+    captured_requests = []
+
+    class MockResponse:
+        status = 200
+        def read(self):
+            return b'{"matches": []}'
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+
+    import urllib.request
+    def mock_urlopen(req, timeout=10.0):
+        captured_requests.append(req)
+        return MockResponse()
+
+    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+
+    # Test 1: Parámetros explícitos premium
+    consultar_languagetool(
+        "Texto de prueba",
+        username="docente@uba.ar",
+        api_key="secret-api-key-123",
+        premium=True,
+    )
+    assert len(captured_requests) == 1
+    req = captured_requests[0]
+    assert "api.languagetoolplus.com" in req.full_url
+    data_str = req.data.decode("utf-8")
+    assert "username=docente%40uba.ar" in data_str
+    assert "apiKey=secret-api-key-123" in data_str
+
+    # Test 2: Env vars
+    monkeypatch.setenv("LANGUAGETOOL_USERNAME", "env_user@uba.ar")
+    monkeypatch.setenv("LANGUAGETOOL_API_KEY", "env-key-999")
+    monkeypatch.setenv("LANGUAGETOOL_PREMIUM", "true")
+
+    consultar_languagetool("Texto de prueba dos")
+    assert len(captured_requests) == 2
+    req2 = captured_requests[1]
+    assert "api.languagetoolplus.com" in req2.full_url
+    data_str2 = req2.data.decode("utf-8")
+    assert "username=env_user%40uba.ar" in data_str2
+    assert "apiKey=env-key-999" in data_str2
+

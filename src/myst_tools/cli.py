@@ -219,6 +219,23 @@ def cmd_spellcheck(
         "-s",
         help="URL del servidor LanguageTool (por defecto http://localhost:8081 y API pública).",
     ),
+    username: Optional[str] = typer.Option(
+        None,
+        "--username",
+        "-u",
+        help="Usuario / correo de LanguageTool Premium.",
+    ),
+    api_key: Optional[str] = typer.Option(
+        None,
+        "--api-key",
+        "-k",
+        help="API Key / Token de LanguageTool Premium.",
+    ),
+    premium: bool = typer.Option(
+        False,
+        "--premium",
+        help="Fuerza el uso de la API LanguageTool Premium (https://api.languagetoolplus.com/v2/check).",
+    ),
     ignore_rules: Optional[str] = typer.Option(
         None,
         "--ignore-rules",
@@ -290,6 +307,9 @@ def cmd_spellcheck(
             arch,
             lang=lang,
             server_url=server,
+            username=username,
+            api_key=api_key,
+            premium=premium,
             ignore_words=palabras_ign,
             ignore_rules=reglas_ign,
         )
