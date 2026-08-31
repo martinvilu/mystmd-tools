@@ -349,3 +349,12 @@ Podés encadenar `myst-tools` con otras herramientas del ecosistema en una únic
 myst-tools fmt apunte/ && myst-tools fix-anchors apunte/ && myst-tools spellcheck apunte/
 ````
 
+---
+
+(manual-myst_tools-seccion-plugins)=
+## 9. Extensión, Desarrollo de Plugins y API Python
+
+Para crear tus propias reglas, conectores de evaluación o integrar `myst-tools` programáticamente en pipelines de CI/CD:
+
+- 👉 **Consultá la guía completa:** [Guía de Extensión y Creación de Plugins](plugins.md)
+
