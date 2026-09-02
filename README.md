@@ -7,6 +7,35 @@ Este proyecto está gestionado con [uv](https://github.com/astral-sh/uv).
 > [!IMPORTANT]
 > **Requisito de ejecución:** Las herramientas del CLI deben ser ejecutadas desde un directorio que contenga el archivo de configuración `mystm.yml` (es decir, la raíz del proyecto de documentación MyST). Si el archivo no está presente, el comando fallará con un error.
 
+---
+
+## 🎯 Alcance
+
+### Qué cubre
+- Herramientas de soporte, auditoría y mantenimiento para apuntes y material didáctico en formato MyST Markdown.
+- Verificación ortográfica y gramatical contextualizada mediante LanguageTool, con diccionario técnico de programación.
+- Detección y resolución de colisiones en anclas y etiquetas cruzadas.
+- Generación automatizada de índices temáticos y verificación de consistencia de enlaces.
+
+### Qué no cubre (Límites y Delegación)
+- Formateo de código fuente en C (delegado a `gaff`).
+- Ejecución de suites de prueba de ejercicios (delegado a `nostromo`).
+- Generación de exámenes institucionales Typst/OMR (delegado a `alucard`).
+
+---
+
+## 📋 Requisitos
+
+### Requisitos de Sistema y Entorno
+- Multiplataforma. Python >= 3.10.
+
+### Dependencias Externas y Binarios
+- Java Runtime Environment (JRE) opcional (para ejecución de servidor local LanguageTool).
+
+### Integración en el Ecosistema
+- CLI `myst-tools`. Subcomando `doctor`.
+
+---
 
 ## Instalación
 
@@ -118,4 +147,3 @@ uv run myst-tools --help
 ```
 
 El backend de construcción utilizado es `hatchling`.
-
