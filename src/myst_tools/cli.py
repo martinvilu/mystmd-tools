@@ -435,6 +435,176 @@ def cmd_report(
         print(md_content)
 
 
+@app.command("check-tables")
+def cmd_check_tables(
+    files: Optional[List[Path]] = typer.Argument(
+        None,
+        help="Archivos Markdown a auditar.",
+    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+) -> None:
+    """Audita tablas Markdown en busca de columnas desalineadas o separadores inválidos."""
+    from myst_tools.table_auditor import parse_markdown_tables, auditar_tabla
+
+    _check_myst_yml(force)
+    target_files = files or list(Path(".").glob("**/*.md"))
+    total_issues = 0
+
+    for f in target_files:
+        if not f.is_file() or f.suffix.lower() != ".md":
+            continue
+        content = f.read_text(encoding="utf-8", errors="replace")
+        tables = parse_markdown_tables(content)
+        for tbl in tables:
+            issues = auditar_tabla(tbl["raw_rows"], start_line=tbl["start_line"])
+            for iss in issues:
+                total_issues += 1
+                console.print(f"[bold red]{f.name}:{iss.line_number}[/bold red]: {iss.message}")
+
+    if total_issues == 0:
+        console.print("[bold green]✓ Todas las tablas Markdown son consistentes.[/bold green]")
+        raise typer.Exit(code=0)
+    else:
+        raise typer.Exit(code=1)
+
+
+@app.command("fmt-tables")
+def cmd_fmt_tables(
+    files: Optional[List[Path]] = typer.Argument(
+        None,
+        help="Archivos Markdown a formatear.",
+    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+) -> None:
+    """Formatea y alinea visualmente las columnas de tablas Markdown."""
+    from myst_tools.table_auditor import parse_markdown_tables, formatear_tabla
+
+    _check_myst_yml(force)
+    target_files = files or list(Path(".").glob("**/*.md"))
+    modificados = 0
+
+    for f in target_files:
+        if not f.is_file() or f.suffix.lower() != ".md":
+            continue
+        content = f.read_text(encoding="utf-8", errors="replace")
+        tables = parse_markdown_tables(content)
+        if not tables:
+            continue
+        new_content = content
+        for tbl in tables:
+            original_chunk = "\n".join(tbl["raw_rows"])
+            formatted_chunk = "\n".join(formatear_tabla(tbl["raw_rows"]))
+            new_content = new_content.replace(original_chunk, formatted_chunk, 1)
+
+        if new_content != content:
+            f.write_text(new_content, encoding="utf-8")
+            modificados += 1
+
+    console.print(f"[bold green]✓ Tablas formateadas en {modificados} archivos.[/bold green]")
+
+
+@app.command("check-style")
+def cmd_check_style(
+    files: Optional[List[Path]] = typer.Argument(
+        None,
+        help="Archivos Markdown a auditar en estilo rioplatense.",
+    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+) -> None:
+    """Audita estilo rioplatense (voseo vs tuteo, spanglish)."""
+    from myst_tools.rioplatense_checker import auditar_estilo_rioplatense
+
+    _check_myst_yml(force)
+    target_files = files or list(Path(".").glob("**/*.md"))
+    total_issues = 0
+
+    for f in target_files:
+        if not f.is_file() or f.suffix.lower() != ".md":
+            continue
+        content = f.read_text(encoding="utf-8", errors="replace")
+        issues = auditar_estilo_rioplatense(content)
+        for iss in issues:
+            total_issues += 1
+            console.print(f"[yellow]{f.name}:{iss.line_number}:{iss.column}[/yellow] [{iss.rule_type}] {iss.message}")
+
+    if total_issues == 0:
+        console.print("[bold green]✓ Estilo rioplatense consistente.[/bold green]")
+        raise typer.Exit(code=0)
+    else:
+        raise typer.Exit(code=1)
+
+
+@app.command("extract-c-tests")
+def cmd_extract_c_tests(
+    file_path: Path = typer.Argument(..., help="Archivo Markdown del cual extraer ejemplos C."),
+    output_dir: Path = typer.Option(Path("./test_c_project"), "--output-dir", "-o", help="Directorio destino del proyecto C."),
+    force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+) -> None:
+    """Extrae bloques C hacia un proyecto C compilable con Makefile."""
+    from myst_tools.c_project_extractor import extraer_snippets_c_compilables, exportar_proyecto_c
+
+    _check_myst_yml(force)
+    if not file_path.is_file():
+        err_console.print(f"[bold red]Error:[/bold red] Archivo no encontrado: {file_path}")
+        raise typer.Exit(code=1)
+
+    content = file_path.read_text(encoding="utf-8", errors="replace")
+    snippets = extraer_snippets_c_compilables(content)
+    archivos = exportar_proyecto_c(snippets, output_dir)
+    console.print(f"[bold green]✓ Proyecto C exportado en {output_dir} ({len(archivos)} archivos generados).[/bold green]")
+
+
+@app.command("extract-dict-terms")
+def cmd_extract_dict_terms(
+    files: Optional[List[Path]] = typer.Argument(None, help="Archivos Markdown a procesar."),
+    output_file: Path = typer.Option(Path("./spelling.txt"), "--output", "-o", help="Archivo destino para términos LanguageTool."),
+    force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+) -> None:
+    """Extrae identificadores técnicos C y directivas para el diccionario personalizado de LanguageTool."""
+    from myst_tools.dict_terms_extractor import extraer_terminos_tecnicos_c, exportar_diccionario_languagetool
+
+    _check_myst_yml(force)
+    target_files = files or list(Path(".").glob("**/*.md"))
+    todos_terminos = set()
+
+    for f in target_files:
+        if not f.is_file() or f.suffix.lower() != ".md":
+            continue
+        content = f.read_text(encoding="utf-8", errors="replace")
+        todos_terminos.update(extraer_terminos_tecnicos_c(content))
+
+    cant = exportar_diccionario_languagetool(todos_terminos, output_file)
+    console.print(f"[bold green]✓ Diccionario generado en {output_file} con {cant} términos técnicos.[/bold green]")
+
+
+@app.command("check-links")
+def cmd_check_links(
+    files: Optional[List[Path]] = typer.Argument(None, help="Archivos Markdown a auditar."),
+    force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+) -> None:
+    """Audita inmutabilidad y sintaxis de enlaces a GitHub."""
+    from myst_tools.github_link_auditor import auditar_enlaces_github
+
+    _check_myst_yml(force)
+    target_files = files or list(Path(".").glob("**/*.md"))
+    total_issues = 0
+
+    for f in target_files:
+        if not f.is_file() or f.suffix.lower() != ".md":
+            continue
+        content = f.read_text(encoding="utf-8", errors="replace")
+        issues = auditar_enlaces_github(content)
+        for iss in issues:
+            total_issues += 1
+            console.print(f"[bold yellow]{f.name}:{iss.line_number}[/bold yellow] [{iss.issue_type}] {iss.message}")
+
+    if total_issues == 0:
+        console.print("[bold green]✓ Todos los enlaces a GitHub cumplen con las pautas de inmutabilidad.[/bold green]")
+        raise typer.Exit(code=0)
+    else:
+        raise typer.Exit(code=1)
+
+
 def main() -> None:
     app()
 

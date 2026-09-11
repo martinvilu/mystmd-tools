@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-import yaml
 from typing import List, Dict, Any
 
 
