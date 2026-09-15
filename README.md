@@ -5,7 +5,7 @@ Herramientas unificadas para automatizar y gestionar el material didáctico escr
 Este proyecto está gestionado con [uv](https://github.com/astral-sh/uv).
 
 > [!IMPORTANT]
-> **Requisito de ejecución:** Las herramientas del CLI deben ser ejecutadas desde un directorio que contenga el archivo de configuración `mystm.yml` (es decir, la raíz del proyecto de documentación MyST). Si el archivo no está presente, el comando fallará con un error.
+> **Requisito de ejecución:** Las herramientas del CLI deben ser ejecutadas desde un directorio que contenga el archivo de configuración `myst.yml` (es decir, la raíz del proyecto de documentación MyST). Si el archivo no está presente, puede ignorarse la restricción usando la opción global `-f/--force`.
 
 ---
 
@@ -33,7 +33,7 @@ Este proyecto está gestionado con [uv](https://github.com/astral-sh/uv).
 - Java Runtime Environment (JRE) opcional (para ejecución de servidor local LanguageTool).
 
 ### Integración en el Ecosistema
-- CLI `myst-tools`. Subcomando `doctor`.
+- CLI `myst-tools`.
 
 ---
 
@@ -137,6 +137,49 @@ myst-tools spellcheck [ARCHIVOS/DIR...] [OPCIONES]
   * `--ignore-rules`: Reglas específicas a deshabilitar separadas por coma.
   * `--json`: Salida estructurada JSON.
   * `-o, --md`: Genera reporte en formato Markdown para fusión en Dredd o documentación.
+
+### 8. `report`
+Genera un informe integral del estado del proyecto MyST Markdown (anclas huérfanas, tablas, enlaces y directivas).
+
+```bash
+myst-tools report [DIRECTORIO] [--md]
+```
+
+### 9. `check-tables` y `fmt-tables`
+Audita y formatea tablas Markdown para asegurar alineación visual homogénea y sintaxis válida.
+
+```bash
+myst-tools check-tables [ARCHIVOS/DIR...]
+myst-tools fmt-tables [ARCHIVOS/DIR...]
+```
+
+### 10. `check-style`
+Verifica directivas MyST, bloques de admonición y normas de estilo pedagógico.
+
+```bash
+myst-tools check-style [ARCHIVOS/DIR...]
+```
+
+### 11. `extract-c-tests`
+Extrae bloques de código C incluidos en el material didáctico para verificación de compilación.
+
+```bash
+myst-tools extract-c-tests [ARCHIVOS/DIR...] -o ./pruebas_c
+```
+
+### 12. `extract-dict-terms`
+Extrae términos técnicos del apunte para alimentar diccionarios ortográficos especializados.
+
+```bash
+myst-tools extract-dict-terms [ARCHIVOS/DIR...]
+```
+
+### 13. `check-links`
+Valida la integridad de enlaces internos y referencias cruzadas entre documentos.
+
+```bash
+myst-tools check-links [ARCHIVOS/DIR...]
+```
 
 ## Desarrollo
 
