@@ -1,8 +1,9 @@
-"""Módulo de verificación y corrección de ortografía y gramática con LanguageTool para MyST Markdown."""
+"""Módulo de verificación y corrección de ortografía y gramática con LanguageTool para MyST Markdown y herramientas pedagógicas."""
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import urllib.parse
 import urllib.request
@@ -18,7 +19,7 @@ from rich.table import Table
 console = Console()
 err_console = Console(stderr=True)
 
-# Palabras técnicas y modismos informáticos comunes en C y MyST a ignorar por defecto
+# Palabras técnicas y modismos informáticos comunes en C, MyST, Moodle y cátedra a ignorar por defecto
 PALABRAS_IGNORADAS_DEFAULT = {
     "malloc", "calloc", "realloc", "free", "printf", "scanf", "sscanf", "sprintf",
     "snprintf", "fprintf", "fopen", "fclose", "fread", "fwrite", "fseek", "ftell",
@@ -29,7 +30,9 @@ PALABRAS_IGNORADAS_DEFAULT = {
     "unsigned", "signed", "myst", "markdown", "gcc", "clang", "gdb", "valgrind",
     "bwrap", "cátedra", "puntero", "punteros", "stack", "heap", "segfault", "sigsegv",
     "ripley", "dredd", "deckard", "daedalus", "gaff", "hal", "bishop", "kaneda", "spunkmeyer",
-    "typst", "languagetool", "autofix", "callgraph", "endianness", "makefile"
+    "typst", "languagetool", "autofix", "callgraph", "endianness", "makefile", "tda", "tdas",
+    "avl", "bst", "fifo", "lifo", "bloom", "poscondición", "precondición", "invariante",
+    "idkfa", "cloze", "moodle", "alucard"
 }
 
 DEFAULT_LANGUAGETOOL_URL = "https://api.languagetool.org/v2/check"
@@ -39,22 +42,25 @@ LOCAL_LANGUAGETOOL_URL = "http://localhost:8081/v2/check"
 
 @dataclass
 class LanguageToolIssue:
-    """Representa una observación ortográfica o gramatical encontrada en un documento."""
-    file_path: Path
-    line: int
-    column: int
-    message: str
-    short_message: str
-    rule_id: str
-    category: str
-    context: str
+    """Representa una observación ortográfica o gramatical encontrada en un documento o enunciado."""
+    file_path: Optional[Path] = None
+    line: int = 1
+    column: int = 1
+    message: str = ""
+    short_message: str = ""
+    rule_id: str = "UNKNOWN"
+    category: str = "Gramática / Ortografía"
+    context: str = ""
     replacements: List[str] = field(default_factory=list)
     length: int = 0
     original_word: str = ""
+    ejercicio_id: Optional[str] = None
+    campo: Optional[str] = None
+    pregunta_id: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "file": str(self.file_path),
+        d: Dict[str, Any] = {
+            "file": str(self.file_path) if self.file_path else None,
             "line": self.line,
             "column": self.column,
             "rule_id": self.rule_id,
@@ -64,6 +70,50 @@ class LanguageToolIssue:
             "replacements": self.replacements,
             "original_word": self.original_word,
         }
+        if self.ejercicio_id:
+            d["ejercicio_id"] = self.ejercicio_id
+        if self.campo:
+            d["campo"] = self.campo
+        if self.pregunta_id:
+            d["pregunta_id"] = self.pregunta_id
+        return d
+
+
+def enmascarar_enunciado(contenido: str) -> Tuple[str, List[Dict[str, Any]]]:
+    """Enmascara código C, fórmulas y enlaces para evitar falsos positivos en LanguageTool."""
+    enmascarado = list(contenido)
+    mascaras = []
+
+    def _mask_range(start: int, end: int, preserve_newlines: bool = True):
+        for i in range(start, end):
+            if preserve_newlines and enmascarado[i] == '\n':
+                continue
+            enmascarado[i] = ' '
+        mascaras.append({"start": start, "end": end})
+
+    # 1. Bloques de código ``` ... ```
+    for m in re.finditer(r'(```|~~~|````)[^\n]*\n.*?\n\s*\1', contenido, re.DOTALL):
+        _mask_range(m.start(), m.end())
+
+    # 2. Fórmulas matemáticas $$...$$ o $...$
+    for m in re.finditer(r'\$\$.*?\$\$', contenido, re.DOTALL):
+        _mask_range(m.start(), m.end())
+    for m in re.finditer(r'\$[^\$\n]+\$', contenido):
+        _mask_range(m.start(), m.end())
+
+    # 3. Código inline `...`
+    for m in re.finditer(r'`[^`\n]+`', contenido):
+        _mask_range(m.start(), m.end())
+
+    # 4. Enlaces Markdown [texto](url) -> enmascarar url
+    for m in re.finditer(r'\[([^\]]+)\]\(([^)]+)\)', contenido):
+        _mask_range(m.start(2) - 1, m.end(2) + 1)
+
+    # 5. Etiquetas HTML
+    for m in re.finditer(r'<[^>\n]+>', contenido):
+        _mask_range(m.start(), m.end())
+
+    return "".join(enmascarado), mascaras
 
 
 def enmascarar_myst_markdown(contenido: str) -> Tuple[str, List[Dict[str, Any]]]:
@@ -125,7 +175,6 @@ def consultar_languagetool(
     timeout_sec: float = 10.0,
 ) -> Dict[str, Any]:
     """Envía una petición a LanguageTool API (local, remota o remota paga) para analizar texto."""
-    import os
     env_server = os.environ.get("LANGUAGETOOL_URL") or os.environ.get("LANGUAGETOOL_SERVER")
     env_user = os.environ.get("LANGUAGETOOL_USERNAME") or os.environ.get("LANGUAGETOOL_USER")
     env_key = os.environ.get("LANGUAGETOOL_API_KEY") or os.environ.get("LANGUAGETOOL_KEY")
@@ -181,8 +230,12 @@ def consultar_languagetool(
     return {"matches": []}
 
 
-def analizar_archivo_languagetool(
-    file_path: Path,
+def analizar_texto_languagetool(
+    texto: str,
+    file_path: Optional[Path] = None,
+    ejercicio_id: Optional[str] = None,
+    campo: Optional[str] = None,
+    pregunta_id: Optional[str] = None,
     lang: str = "es-AR",
     server_url: Optional[str] = None,
     username: Optional[str] = None,
@@ -190,13 +243,16 @@ def analizar_archivo_languagetool(
     premium: bool = False,
     ignore_words: Optional[Set[str]] = None,
     ignore_rules: Optional[Set[str]] = None,
+    custom_mask_fn: Optional[Any] = None,
 ) -> List[LanguageToolIssue]:
-    """Analiza ortografía y gramática de un archivo MyST Markdown."""
-    if not file_path.is_file():
+    """Analiza ortografía y gramática de un texto arbitrario o documento."""
+    if not texto.strip():
         return []
 
-    contenido_original = file_path.read_text(encoding="utf-8", errors="replace")
-    texto_limpio, _ = enmascarar_myst_markdown(contenido_original)
+    if custom_mask_fn:
+        texto_limpio, _ = custom_mask_fn(texto)
+    else:
+        texto_limpio, _ = enmascarar_myst_markdown(texto)
 
     palabras_ignorar = PALABRAS_IGNORADAS_DEFAULT.copy()
     if ignore_words:
@@ -215,11 +271,10 @@ def analizar_archivo_languagetool(
             disabled_rules=reglas_deshabilitadas,
         )
     except Exception as e:
-        err_console.print(f"[yellow]Aviso:[/yellow] Falló la consulta a LanguageTool para '{file_path.name}': {e}")
+        err_console.print(f"[yellow]Aviso:[/yellow] Falló la consulta a LanguageTool: {e}")
         return []
 
-    # Mapear offsets de caracteres a número de línea y columna
-    lineas = contenido_original.splitlines(keepends=True)
+    lineas = texto.splitlines(keepends=True)
     line_offsets = []
     curr = 0
     for l in lineas:
@@ -249,9 +304,8 @@ def analizar_archivo_languagetool(
         context_str = context_data.get("text", "")
         replacements = [r.get("value") for r in match.get("replacements", []) if "value" in r]
 
-        palabra_afectada = contenido_original[offset:offset + length].strip()
+        palabra_afectada = texto[offset:offset + length].strip()
 
-        # Ignorar si es palabra técnica conocida
         if palabra_afectada.lower() in palabras_ignorar or palabra_afectada in palabras_ignorar:
             continue
 
@@ -268,24 +322,50 @@ def analizar_archivo_languagetool(
             replacements=replacements[:5],
             length=length,
             original_word=palabra_afectada,
+            ejercicio_id=ejercicio_id,
+            campo=campo,
+            pregunta_id=pregunta_id,
         ))
 
     return issues
 
 
-def aplicar_autofix_archivo(
+def analizar_archivo_languagetool(
     file_path: Path,
-    issues: List[LanguageToolIssue],
-) -> int:
-    """Aplica las correcciones sugeridas de forma segura sobre el archivo original."""
-    if not issues or not file_path.is_file():
-        return 0
+    lang: str = "es-AR",
+    server_url: Optional[str] = None,
+    username: Optional[str] = None,
+    api_key: Optional[str] = None,
+    premium: bool = False,
+    ignore_words: Optional[Set[str]] = None,
+    ignore_rules: Optional[Set[str]] = None,
+) -> List[LanguageToolIssue]:
+    """Analiza ortografía y gramática de un archivo MyST Markdown o texto."""
+    if not file_path.is_file():
+        return []
 
     contenido = file_path.read_text(encoding="utf-8", errors="replace")
-    lineas = contenido.splitlines(keepends=True)
+    return analizar_texto_languagetool(
+        contenido,
+        file_path=file_path,
+        lang=lang,
+        server_url=server_url,
+        username=username,
+        api_key=api_key,
+        premium=premium,
+        ignore_words=ignore_words,
+        ignore_rules=ignore_rules,
+    )
+
+
+def aplicar_autofix_texto(texto: str, issues: List[LanguageToolIssue]) -> Tuple[str, int]:
+    """Aplica las correcciones sugeridas de forma segura sobre un texto ordenando por columna descendente."""
+    if not issues or not texto:
+        return texto, 0
+
+    lineas = texto.splitlines(keepends=True)
     cambios = 0
 
-    # Agrupar por línea
     issues_por_linea: Dict[int, List[LanguageToolIssue]] = {}
     for iss in issues:
         if iss.replacements and iss.original_word:
@@ -294,7 +374,6 @@ def aplicar_autofix_archivo(
     nuevas_lineas = []
     for num_linea, linea_texto in enumerate(lineas, start=1):
         if num_linea in issues_por_linea:
-            # Ordenar issues de derecha a izquierda por columna para no alterar offsets de la línea
             issues_linea = sorted(issues_por_linea[num_linea], key=lambda x: x.column, reverse=True)
             mod_linea = linea_texto
             for iss in issues_linea:
@@ -308,9 +387,21 @@ def aplicar_autofix_archivo(
         else:
             nuevas_lineas.append(linea_texto)
 
-    if cambios > 0:
-        file_path.write_text("".join(nuevas_lineas), encoding="utf-8")
+    return "".join(nuevas_lineas), cambios
 
+
+def aplicar_autofix_archivo(
+    file_path: Path,
+    issues: List[LanguageToolIssue],
+) -> int:
+    """Aplica las correcciones sugeridas de forma segura sobre el archivo original."""
+    if not issues or not file_path.is_file():
+        return 0
+
+    contenido = file_path.read_text(encoding="utf-8", errors="replace")
+    nuevo_contenido, cambios = aplicar_autofix_texto(contenido, issues)
+    if cambios > 0:
+        file_path.write_text(nuevo_contenido, encoding="utf-8")
     return cambios
 
 
@@ -320,14 +411,15 @@ def generar_reporte_markdown(issues: List[LanguageToolIssue]) -> str:
     lines.append(f"- **Total de observaciones encontradas:** {len(issues)}\n")
 
     if not issues:
-        lines.append("> [!TIP]\n> **Texto Impecable:** No se detectaron faltas de ortografía ni errores gramaticales en la documentación MyST analizada.\n")
+        lines.append("> [!TIP]\n> **Texto Impecable:** No se detectaron faltas de ortografía ni errores gramaticales en el contenido analizado.\n")
         return "\n".join(lines)
 
-    lines.append("| Archivo | Línea:Col | Categoría | Regla | Palabra / Contexto | Sugerencia |")
+    lines.append("| Archivo / Origen | Línea:Col | Categoría | Regla | Palabra / Contexto | Sugerencia |")
     lines.append("| :--- | :---: | :--- | :---: | :--- | :--- |")
     for iss in issues:
         sug = ", ".join(f"`{r}`" for r in iss.replacements[:3]) if iss.replacements else "*Ninguna*"
         ctx = iss.context.replace("\n", " ").replace("|", "\\|")
-        lines.append(f"| `{iss.file_path.name}` | {iss.line}:{iss.column} | {iss.category} | `{iss.rule_id}` | `{iss.original_word}` ({ctx[:40]}...) | {sug} |")
+        origen = f"`{iss.file_path.name}`" if iss.file_path else f"`{iss.ejercicio_id or iss.pregunta_id or 'texto'}`"
+        lines.append(f"| {origen} | {iss.line}:{iss.column} | {iss.category} | `{iss.rule_id}` | `{iss.original_word}` ({ctx[:40]}...) | {sug} |")
     lines.append("")
     return "\n".join(lines)
