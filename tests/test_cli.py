@@ -209,3 +209,16 @@ def test_cli_module_main(monkeypatch):
     with pytest.raises(SystemExit) as exc_info:
         runpy.run_module("myst_tools.cli", run_name="__main__")
     assert exc_info.value.code == 0
+
+
+def test_cli_doctor():
+    res = runner.invoke(app, ["doctor"])
+    assert res.exit_code == 0
+    assert "Diagnóstico del Entorno MYST-TOOLS" in res.output
+
+    res_json = runner.invoke(app, ["doctor", "--json"])
+    assert res_json.exit_code == 0
+    assert '"schema_version": "1.0.0"' in res_json.output
+    assert '"herramienta": "myst-tools"' in res_json.output
+    assert '"ok": true' in res_json.output
+
