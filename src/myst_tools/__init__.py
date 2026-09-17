@@ -1,6 +1,5 @@
 """Herramientas unificadas para automatizar, formatear e indexar material didáctico MyST."""
 
-from myst_tools.cli import app, main
 from myst_tools.add_myst_anchors import run_add_anchors
 from myst_tools.fix_dup_anchors import run_fix_dup_anchors
 from myst_tools.generate_apunte_index import run_generate_apunte_index
@@ -29,4 +28,18 @@ __all__ = [
     "generar_reporte_markdown",
     "LanguageToolIssue",
 ]
+
+
+def __getattr__(name):
+    # `app`/`main` viven en myst_tools.cli, que depende de typer/rich. Se cargan
+    # perezosamente para que consumidores externos (alucarD, idkfa, moodle-toolbox)
+    # puedan importar submódulos livianos (p. ej. languagetool_checker) sin que
+    # typer sea una dependencia transitiva obligatoria de todo el paquete.
+    if name in ("app", "main"):
+        from myst_tools.cli import app, main
+
+        globals()["app"] = app
+        globals()["main"] = main
+        return globals()[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
