@@ -1,5 +1,12 @@
 """Herramientas unificadas para automatizar, formatear e indexar material didáctico MyST."""
 
+from importlib.metadata import PackageNotFoundError, version as _metadata_version
+
+try:
+    __version__ = _metadata_version("myst-tools")
+except PackageNotFoundError:
+    __version__ = "desconocida"
+
 from myst_tools.add_myst_anchors import run_add_anchors
 from myst_tools.fix_dup_anchors import run_fix_dup_anchors
 from myst_tools.generate_apunte_index import run_generate_apunte_index
