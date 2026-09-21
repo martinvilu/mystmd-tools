@@ -205,8 +205,8 @@ def cmd_fmt(
 
 
 @app.command("spellcheck")
-@app.command("grammar")
-@app.command("languagetool")
+@app.command("grammar", hidden=True)
+@app.command("languagetool", hidden=True)
 def cmd_spellcheck(
     paths: Optional[List[Path]] = typer.Argument(
         None,
