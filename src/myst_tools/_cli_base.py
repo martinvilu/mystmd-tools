@@ -55,3 +55,15 @@ def main_callback(
     """Opciones globales de myst-tools."""
     if force:
         state["force"] = True
+
+
+SCHEMA_VERSION = "1.0.0"
+
+
+def emitir_json(comando: str, datos: dict) -> None:
+    """Imprime `datos` como JSON con envoltorio versionado (schema_version, herramienta, comando)."""
+    import json
+
+    payload = {"schema_version": SCHEMA_VERSION, "herramienta": "myst-tools", "comando": comando}
+    payload.update(datos)
+    typer.echo(json.dumps(payload, indent=2, ensure_ascii=False))
