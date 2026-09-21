@@ -1,7 +1,6 @@
 """Tests para generadores de índices (apunte, guías, reglas)."""
 
 import sys
-import runpy
 from pathlib import Path
 from myst_tools.generate_apunte_index import (
     extract_headers as apunte_extract_headers,
@@ -72,7 +71,7 @@ def test_generate_apunte_index_nonexistent_and_empty(tmp_path: Path, capsys):
     assert "No se encontraron archivos markdown" in capsys.readouterr().out
 
 
-def test_generate_apunte_index_main(tmp_path: Path, monkeypatch):
+def test_generate_apunte_index_main(tmp_path: Path, monkeypatch, ejecutar_como_main):
     apunte = tmp_path / "apunte"
     apunte.mkdir()
     (apunte / "01_test.md").write_text("# Test Apunte\n", encoding="utf-8")
@@ -86,7 +85,7 @@ def test_generate_apunte_index_main(tmp_path: Path, monkeypatch):
     apunte_main()
 
     # Run as script
-    runpy.run_module("myst_tools.generate_apunte_index", run_name="__main__")
+    ejecutar_como_main("myst_tools.generate_apunte_index")
 
 
 # --- Tests para generate_guides_index ---
@@ -132,7 +131,7 @@ def test_generate_guides_index_nonexistent_and_empty(tmp_path: Path, capsys):
     assert "No se encontraron archivos markdown" in capsys.readouterr().out
 
 
-def test_generate_guides_index_main(tmp_path: Path, monkeypatch):
+def test_generate_guides_index_main(tmp_path: Path, monkeypatch, ejecutar_como_main):
     guias = tmp_path / "guias"
     guias.mkdir()
     (guias / "g1.md").write_text("# G1\n", encoding="utf-8")
@@ -146,7 +145,7 @@ def test_generate_guides_index_main(tmp_path: Path, monkeypatch):
     guides_main()
 
     # Run as script
-    runpy.run_module("myst_tools.generate_guides_index", run_name="__main__")
+    ejecutar_como_main("myst_tools.generate_guides_index")
 
 
 # --- Tests para generate_rules_index ---
@@ -214,7 +213,7 @@ def test_generate_rules_index_nonexistent_and_empty(tmp_path: Path, capsys):
     assert "No se encontraron archivos markdown" in capsys.readouterr().out
 
 
-def test_generate_rules_index_main(tmp_path: Path, monkeypatch):
+def test_generate_rules_index_main(tmp_path: Path, monkeypatch, ejecutar_como_main):
     reglas = tmp_path / "reglas"
     reglas.mkdir()
     (reglas / "r1.md").write_text("(regla-1)=\n## Regla 1\n", encoding="utf-8")
@@ -228,4 +227,4 @@ def test_generate_rules_index_main(tmp_path: Path, monkeypatch):
     rules_main()
 
     # Run as script
-    runpy.run_module("myst_tools.generate_rules_index", run_name="__main__")
+    ejecutar_como_main("myst_tools.generate_rules_index")

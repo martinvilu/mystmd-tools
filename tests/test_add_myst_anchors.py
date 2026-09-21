@@ -1,7 +1,6 @@
 """Tests para el generador de anclas add_myst_anchors."""
 
 import sys
-import runpy
 from pathlib import Path
 import pytest
 from myst_tools.add_myst_anchors import process_file, run_add_anchors, slugify, main
@@ -138,14 +137,14 @@ def test_add_myst_anchors_main_default_arg(tmp_path: Path, monkeypatch):
     assert "(test-default)=" in content
 
 
-def test_add_myst_anchors_run_as_script(tmp_path: Path, monkeypatch):
+def test_add_myst_anchors_run_as_script(tmp_path: Path, monkeypatch, ejecutar_como_main):
     monkeypatch.chdir(tmp_path)
     apunte = tmp_path / "apunte"
     apunte.mkdir()
     (apunte / "01_script.md").write_text("# Script Test\n", encoding="utf-8")
 
     monkeypatch.setattr(sys, "argv", ["add_myst_anchors.py", str(apunte)])
-    runpy.run_module("myst_tools.add_myst_anchors", run_name="__main__")
+    ejecutar_como_main("myst_tools.add_myst_anchors")
 
     content = (apunte / "01_script.md").read_text(encoding="utf-8")
     assert "(script-test)=" in content

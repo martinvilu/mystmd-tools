@@ -1,7 +1,6 @@
 """Tests para la interfaz CLI de myst-tools (Typer)."""
 
 import sys
-import runpy
 from pathlib import Path
 import pytest
 import typer
@@ -204,10 +203,10 @@ def test_main_function(monkeypatch):
     assert called is True
 
 
-def test_cli_module_main(monkeypatch):
+def test_cli_module_main(monkeypatch, ejecutar_como_main):
     monkeypatch.setattr(sys, "argv", ["myst-tools", "--help"])
     with pytest.raises(SystemExit) as exc_info:
-        runpy.run_module("myst_tools.cli", run_name="__main__")
+        ejecutar_como_main("myst_tools.cli")
     assert exc_info.value.code == 0
 
 
