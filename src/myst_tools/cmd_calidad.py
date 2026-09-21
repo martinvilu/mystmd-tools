@@ -7,7 +7,7 @@ from typing import List, Optional
 
 import typer
 
-from myst_tools._cli_base import _check_myst_yml, app, console
+from myst_tools._cli_base import _check_myst_yml, app, console, emitir_json
 
 
 @app.command("check-tables")
@@ -17,6 +17,7 @@ def cmd_check_tables(
         help="Archivos Markdown a auditar.",
     ),
     force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+    output_json: bool = typer.Option(False, "--json", help="Emite los hallazgos como JSON versionado."),
 ) -> None:
     """Audita tablas Markdown en busca de columnas desalineadas o separadores inválidos."""
     from myst_tools.table_auditor import parse_markdown_tables, auditar_tabla
@@ -24,6 +25,7 @@ def cmd_check_tables(
     _check_myst_yml(force)
     target_files = files or list(Path(".").glob("**/*.md"))
     total_issues = 0
+    hallazgos = []
 
     for f in target_files:
         if not f.is_file() or f.suffix.lower() != ".md":
@@ -34,7 +36,13 @@ def cmd_check_tables(
             issues = auditar_tabla(tbl["raw_rows"], start_line=tbl["start_line"])
             for iss in issues:
                 total_issues += 1
-                console.print(f"[bold red]{f.name}:{iss.line_number}[/bold red]: {iss.message}")
+                hallazgos.append({"archivo": str(f), "linea": iss.line_number, "mensaje": iss.message})
+                if not output_json:
+                    console.print(f"[bold red]{f.name}:{iss.line_number}[/bold red]: {iss.message}")
+
+    if output_json:
+        emitir_json("check-tables", {"total": total_issues, "hallazgos": hallazgos})
+        raise typer.Exit(code=1 if total_issues else 0)
 
     if total_issues == 0:
         console.print("[bold green]✓ Todas las tablas Markdown son consistentes.[/bold green]")
@@ -85,6 +93,7 @@ def cmd_check_style(
         help="Archivos Markdown a auditar en estilo rioplatense.",
     ),
     force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+    output_json: bool = typer.Option(False, "--json", help="Emite los hallazgos como JSON versionado."),
 ) -> None:
     """Audita estilo rioplatense (voseo vs tuteo, spanglish)."""
     from myst_tools.rioplatense_checker import auditar_estilo_rioplatense
@@ -92,6 +101,7 @@ def cmd_check_style(
     _check_myst_yml(force)
     target_files = files or list(Path(".").glob("**/*.md"))
     total_issues = 0
+    hallazgos = []
 
     for f in target_files:
         if not f.is_file() or f.suffix.lower() != ".md":
@@ -100,7 +110,14 @@ def cmd_check_style(
         issues = auditar_estilo_rioplatense(content)
         for iss in issues:
             total_issues += 1
-            console.print(f"[yellow]{f.name}:{iss.line_number}:{iss.column}[/yellow] [{iss.rule_type}] {iss.message}")
+            hallazgos.append({"archivo": str(f), "linea": iss.line_number, "columna": iss.column,
+                              "regla": iss.rule_type, "mensaje": iss.message})
+            if not output_json:
+                console.print(f"[yellow]{f.name}:{iss.line_number}:{iss.column}[/yellow] [{iss.rule_type}] {iss.message}")
+
+    if output_json:
+        emitir_json("check-style", {"total": total_issues, "hallazgos": hallazgos})
+        raise typer.Exit(code=1 if total_issues else 0)
 
     if total_issues == 0:
         console.print("[bold green]✓ Estilo rioplatense consistente.[/bold green]")

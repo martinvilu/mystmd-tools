@@ -8,7 +8,7 @@ from typing import List, Optional
 
 import typer
 
-from myst_tools._cli_base import _check_myst_yml, app, console, err_console
+from myst_tools._cli_base import _check_myst_yml, app, console, emitir_json, err_console
 
 
 @app.command("extract-c-tests")
@@ -58,6 +58,7 @@ def cmd_extract_dict_terms(
 def cmd_check_links(
     files: Optional[List[Path]] = typer.Argument(None, help="Archivos Markdown a auditar."),
     force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+    output_json: bool = typer.Option(False, "--json", help="Emite los hallazgos como JSON versionado."),
 ) -> None:
     """Audita inmutabilidad y sintaxis de enlaces a GitHub."""
     from myst_tools.github_link_auditor import auditar_enlaces_github
@@ -65,6 +66,7 @@ def cmd_check_links(
     _check_myst_yml(force)
     target_files = files or list(Path(".").glob("**/*.md"))
     total_issues = 0
+    hallazgos = []
 
     for f in target_files:
         if not f.is_file() or f.suffix.lower() != ".md":
@@ -73,7 +75,14 @@ def cmd_check_links(
         issues = auditar_enlaces_github(content)
         for iss in issues:
             total_issues += 1
-            console.print(f"[bold yellow]{f.name}:{iss.line_number}[/bold yellow] [{iss.issue_type}] {iss.message}")
+            hallazgos.append({"archivo": str(f), "linea": iss.line_number,
+                              "tipo": iss.issue_type, "mensaje": iss.message})
+            if not output_json:
+                console.print(f"[bold yellow]{f.name}:{iss.line_number}[/bold yellow] [{iss.issue_type}] {iss.message}")
+
+    if output_json:
+        emitir_json("check-links", {"total": total_issues, "hallazgos": hallazgos})
+        raise typer.Exit(code=1 if total_issues else 0)
 
     if total_issues == 0:
         console.print("[bold green]✓ Todos los enlaces a GitHub cumplen con las pautas de inmutabilidad.[/bold green]")
