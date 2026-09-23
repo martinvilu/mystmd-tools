@@ -12,12 +12,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Tuple, Set, Dict, Any
 
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
+import sys
 
-console = Console()
-err_console = Console(stderr=True)
 
 # Palabras técnicas y modismos informáticos comunes en C, MyST, Moodle y cátedra a ignorar por defecto
 PALABRAS_IGNORADAS_DEFAULT = {
@@ -271,7 +267,7 @@ def analizar_texto_languagetool(
             disabled_rules=reglas_deshabilitadas,
         )
     except Exception as e:
-        err_console.print(f"[yellow]Aviso:[/yellow] Falló la consulta a LanguageTool: {e}")
+        sys.stderr.write(f"Aviso: Falló la consulta a LanguageTool: {e}\n")
         return []
 
     lineas = texto.splitlines(keepends=True)
