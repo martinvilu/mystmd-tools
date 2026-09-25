@@ -1,5 +1,7 @@
 # MyST Tools
 
+> 📖 **Manual de Usuario:** Para una guía exhaustiva de comandos, banderas, arquitectura y ejemplos, consultá el [Manual de Uso](MANUAL.md).
+
 Herramientas unificadas para automatizar y gestionar el material didáctico escrito en formato MyST Markdown para la cátedra de Programación II.
 
 Este proyecto está gestionado con [uv](https://github.com/astral-sh/uv).
