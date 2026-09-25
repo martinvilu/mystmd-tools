@@ -14,6 +14,7 @@ console = Console()
 err_console = Console(stderr=True)
 
 app = typer.Typer(
+    context_settings={"help_option_names": ["-h", "--help"]},
     name="myst-tools",
     help="Herramientas unificadas para automatizar, formatear e indexar material didáctico MyST Markdown.",
     no_args_is_help=True,
