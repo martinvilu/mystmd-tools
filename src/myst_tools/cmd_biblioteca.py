@@ -7,15 +7,14 @@ from typing import List, Optional
 
 import typer
 
-from myst_tools._cli_base import _check_myst_yml, app, console, emitir_json
+from myst_tools._cli_base import _check_myst_yml, app, archivos_markdown, console, emitir_json
 
 _FORCE = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml.")
 _JSON = typer.Option(False, "--json", help="Emite el resultado como JSON versionado.")
 
 
 def _archivos_md(files: Optional[List[Path]]) -> List[Path]:
-    objetivos = files or list(Path(".").glob("**/*.md"))
-    return [f for f in objetivos if f.is_file() and f.suffix.lower() == ".md"]
+    return archivos_markdown(files)
 
 
 @app.command("check-c-snippets")

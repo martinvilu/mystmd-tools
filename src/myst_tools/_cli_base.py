@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import os
-from typing import Optional
+from pathlib import Path
+from typing import List, Optional
 
 import typer
 from rich.console import Console
@@ -30,6 +31,52 @@ def _check_myst_yml(force: bool = False) -> None:
             "Este comando debe ejecutarse desde la raíz del proyecto MyST (o usá [bold]--force / -f[/bold] para ignorar esta verificación)."
         )
         raise typer.Exit(code=1)
+
+
+# Directorios que nunca contienen material fuente del apunte.
+DIRECTORIOS_EXCLUIDOS = {"_build", "node_modules", ".venv", "venv", ".git", "__pycache__"}
+
+
+def archivos_markdown(rutas: Optional[List[Path]]) -> List[Path]:
+    """Expande las rutas recibidas a la lista de archivos .md a procesar.
+
+    - Sin rutas se recorre el directorio actual.
+    - Un directorio se recorre recursivamente; se omiten `_build`, dependencias,
+      entornos virtuales y directorios ocultos.
+    - Una ruta inexistente, o una selección que no contiene ningún .md, es un
+      error de uso (exit 2). Antes un directorio se descartaba en silencio y el
+      comando informaba éxito sobre 0 archivos (N-MYST-01).
+    """
+    objetivos = list(rutas) if rutas else [Path(".")]
+    encontrados: List[Path] = []
+    for ruta in objetivos:
+        if not ruta.exists():
+            err_console.print(f"[bold red]Error:[/bold red] no existe la ruta: {ruta}")
+            raise typer.Exit(code=2)
+        if ruta.is_dir():
+            for archivo in sorted(ruta.rglob("*.md")):
+                partes = archivo.relative_to(ruta).parts[:-1]
+                if any(p in DIRECTORIOS_EXCLUIDOS or p.startswith(".") for p in partes):
+                    continue
+                if archivo.is_file():
+                    encontrados.append(archivo)
+        elif ruta.suffix.lower() == ".md":
+            encontrados.append(ruta)
+
+    unicos: List[Path] = []
+    vistos = set()
+    for archivo in encontrados:
+        clave = archivo.resolve()
+        if clave not in vistos:
+            vistos.add(clave)
+            unicos.append(archivo)
+    if not unicos:
+        err_console.print(
+            "[bold red]Error:[/bold red] no se encontró ningún archivo Markdown (.md) en: "
+            + ", ".join(str(r) for r in objetivos)
+        )
+        raise typer.Exit(code=2)
+    return unicos
 
 
 def _version_callback(value: bool) -> None:

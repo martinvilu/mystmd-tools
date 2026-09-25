@@ -8,7 +8,7 @@ from typing import List, Optional
 
 import typer
 
-from myst_tools._cli_base import _check_myst_yml, app, console, emitir_json, err_console
+from myst_tools._cli_base import _check_myst_yml, app, archivos_markdown, console, emitir_json, err_console
 
 
 @app.command("extract-c-tests")
@@ -41,7 +41,7 @@ def cmd_extract_dict_terms(
     from myst_tools.dict_terms_extractor import extraer_terminos_tecnicos_c, exportar_diccionario_languagetool
 
     _check_myst_yml(force)
-    target_files = files or list(Path(".").glob("**/*.md"))
+    target_files = archivos_markdown(files)
     todos_terminos = set()
 
     for f in target_files:
@@ -64,7 +64,7 @@ def cmd_check_links(
     from myst_tools.github_link_auditor import auditar_enlaces_github
 
     _check_myst_yml(force)
-    target_files = files or list(Path(".").glob("**/*.md"))
+    target_files = archivos_markdown(files)
     total_issues = 0
     hallazgos = []
 

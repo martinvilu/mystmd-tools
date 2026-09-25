@@ -7,7 +7,7 @@ from typing import List, Optional
 
 import typer
 
-from myst_tools._cli_base import _check_myst_yml, app, console, emitir_json
+from myst_tools._cli_base import _check_myst_yml, app, archivos_markdown, console, emitir_json
 
 
 @app.command("check-tables")
@@ -23,7 +23,7 @@ def cmd_check_tables(
     from myst_tools.table_auditor import parse_markdown_tables, auditar_tabla
 
     _check_myst_yml(force)
-    target_files = files or list(Path(".").glob("**/*.md"))
+    target_files = archivos_markdown(files)
     total_issues = 0
     hallazgos = []
 
@@ -63,7 +63,7 @@ def cmd_fmt_tables(
     from myst_tools.table_auditor import parse_markdown_tables, formatear_tabla
 
     _check_myst_yml(force)
-    target_files = files or list(Path(".").glob("**/*.md"))
+    target_files = archivos_markdown(files)
     modificados = 0
 
     for f in target_files:
@@ -99,7 +99,7 @@ def cmd_check_style(
     from myst_tools.rioplatense_checker import auditar_estilo_rioplatense
 
     _check_myst_yml(force)
-    target_files = files or list(Path(".").glob("**/*.md"))
+    target_files = archivos_markdown(files)
     total_issues = 0
     hallazgos = []
 
