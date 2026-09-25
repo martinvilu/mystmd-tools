@@ -7,8 +7,12 @@ from myst_tools.cli import app
 runner = CliRunner()
 
 
+import re
+
+
 def _filas(salida: str) -> list[str]:
-    return [p for linea in salida.splitlines() for p in linea.split() if p in ("spellcheck", "grammar", "languagetool")]
+    limpia = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", salida)
+    return [p for linea in limpia.splitlines() for p in linea.split() if p in ("spellcheck", "grammar", "languagetool")]
 
 
 def test_help_lista_solo_spellcheck():
