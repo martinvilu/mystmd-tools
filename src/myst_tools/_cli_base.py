@@ -8,13 +8,19 @@ from typing import List, Optional
 
 import typer
 from rich.console import Console
+from yutani.cli import CONTEXTO, TyperConErrores, opcion_version
+from yutani.textos import traducir
 
+from myst_tools import __version__
 
 console = Console()
 err_console = Console(stderr=True)
 
-app = typer.Typer(
-    context_settings={"help_option_names": ["-h", "--help"]},
+# Contrato de línea de comandos, errores de datos como mensajes y ayuda de Typer/Click en español,
+# desde yutani (N-ECO-14). No usa crear_app porque el callback tiene la opción global --force.
+traducir()
+app = TyperConErrores(
+    context_settings=dict(CONTEXTO),
     name="myst-tools",
     help="Herramientas unificadas para automatizar, formatear e indexar material didáctico MyST Markdown.",
     no_args_is_help=True,
@@ -80,19 +86,9 @@ def archivos_markdown(rutas: Optional[List[Path]]) -> List[Path]:
     return unicos
 
 
-def _version_callback(value: bool) -> None:
-    if value:
-        from myst_tools import __version__
-        console.print(f"[bold cyan]MYST-TOOLS[/bold cyan] versión [bold]{__version__}[/bold]")
-        raise typer.Exit(code=0)
-
-
 @app.callback()
 def main_callback(
-    version: Optional[bool] = typer.Option(
-        None, "--version", "-v", help="Muestra la versión y termina.",
-        callback=_version_callback, is_eager=True,
-    ),
+    version: bool = opcion_version("myst-tools", __version__),  # noqa: ARG001
     force: bool = typer.Option(
         False,
         "--force",
