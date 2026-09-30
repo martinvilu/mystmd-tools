@@ -23,7 +23,12 @@ def cmd_check_c_snippets(
     force: bool = _FORCE,
     output_json: bool = _JSON,
 ) -> None:
-    """Verifica con `gcc -fsyntax-only` que los bloques ```c compilen (requiere gcc)."""
+    """Verifica con `gcc -fsyntax-only` que los bloques C compilen, también como fragmentos (requiere gcc).
+
+    Revisa los bloques ```c y ```{code-block} c. Cada uno se compila con los headers estándar y, si
+    no compila así, dentro de una función; los nombres que el texto declara en otro bloque no cuentan
+    como error. Un bloque `{code-block} c` con `:class: fragmento` no se compila.
+    """
     from myst_tools.c_snippet_validator import extraer_y_validar_snippets_c
 
     _check_myst_yml(force)

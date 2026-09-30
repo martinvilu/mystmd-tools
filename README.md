@@ -234,7 +234,7 @@ El backend de construcción utilizado es `hatchling`.
 | `myst-tools extract-dict-terms` | Extrae identificadores técnicos C y directivas para el diccionario personalizado de LanguageTool. |
 | `myst-tools check-links` | Audita inmutabilidad y sintaxis de enlaces a GitHub. |
 | `myst-tools doctor` | Verifica el estado del entorno de MYST-TOOLS (Python, Node/myst, LanguageTool, Typst). |
-| `myst-tools check-c-snippets` | Verifica con `gcc -fsyntax-only` que los bloques ```c compilen (requiere gcc). |
+| `myst-tools check-c-snippets` | Verifica con `gcc -fsyntax-only` que los bloques C compilen, también como fragmentos (requiere gcc). |
 | `myst-tools to-typst` | Convierte encabezados de un MyST Markdown a una plantilla Typst. |
 | `myst-tools extract-exercises` | Extrae las directivas {exercise} como candidatos a ejercicios del banco (deckard). |
 | `myst-tools glossary` | Detecta definiciones tipo **Término**: definición y arma un glosario. |
