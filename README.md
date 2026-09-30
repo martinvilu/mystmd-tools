@@ -192,3 +192,54 @@ uv run myst-tools --help
 ```
 
 El backend de construcción utilizado es `hatchling`.
+
+<!-- p1:referencia:inicio — generado por p1-tools/scripts/readme_generado.py: no editar a mano -->
+
+## Referencia rápida
+
+### Requisitos
+
+- Python ≥ 3.11 y [uv](https://docs.astral.sh/uv/getting-started/installation/).
+- Programas del sistema: `gcc`.
+
+| Sistema | `gcc` |
+|:--|:--|
+| Debian / Ubuntu | `sudo apt install gcc` |
+| Fedora | `sudo dnf install gcc` |
+| Windows | incluido en el entorno de la cátedra (MSYS2 UCRT64) |
+| macOS | `xcode-select --install` (clang como `gcc`) |
+
+### Opciones de `myst-tools`
+
+| Opción | Descripción |
+|:--|:--|
+| `--force`, `-f` | Fuerza la ejecución saliéndose de la verificación de la existencia de 'myst.yml'. |
+
+### Comandos
+
+| Comando | Descripción |
+|:--|:--|
+| `myst-tools add-anchors` | Agrega etiquetas/anclas de MyST a los encabezados de archivos Markdown. |
+| `myst-tools gen-apunte` | Genera el índice detallado para el apunte de cátedra. |
+| `myst-tools gen-guides` | Genera el índice para las guías de trabajos prácticos. |
+| `myst-tools gen-rules` | Genera el índice de las reglas de estilo de programación. |
+| `myst-tools fix-anchors` | Detecta y corrige anclas MyST duplicadas. |
+| `myst-tools fmt` | Formatea archivos MyST Markdown (longitud de línea, fences y comentarios). |
+| `myst-tools spellcheck` | Verifica y corrige ortografía y gramática en documentos MyST Markdown usando LanguageTool. |
+| `myst-tools report` | Genera directamente la sección de reporte Markdown de LanguageTool para Dredd o documentación. |
+| `myst-tools check-tables` | Audita tablas Markdown en busca de columnas desalineadas o separadores inválidos. |
+| `myst-tools fmt-tables` | Formatea y alinea visualmente las columnas de tablas Markdown. |
+| `myst-tools check-style` | Audita estilo rioplatense (voseo vs tuteo, spanglish). |
+| `myst-tools extract-c-tests` | Extrae bloques C hacia un proyecto C compilable con Makefile. |
+| `myst-tools extract-dict-terms` | Extrae identificadores técnicos C y directivas para el diccionario personalizado de LanguageTool. |
+| `myst-tools check-links` | Audita inmutabilidad y sintaxis de enlaces a GitHub. |
+| `myst-tools doctor` | Verifica el estado del entorno de MYST-TOOLS (Python, Node/myst, LanguageTool, Typst). |
+| `myst-tools check-c-snippets` | Verifica con `gcc -fsyntax-only` que los bloques ```c compilen (requiere gcc). |
+| `myst-tools to-typst` | Convierte encabezados de un MyST Markdown a una plantilla Typst. |
+| `myst-tools extract-exercises` | Extrae las directivas {exercise} como candidatos a ejercicios del banco (deckard). |
+| `myst-tools glossary` | Detecta definiciones tipo **Término**: definición y arma un glosario. |
+| `myst-tools callout` | Imprime un callout MyST (admonition) con el formato estándar. |
+
+Ayuda de cada comando: `myst-tools <comando> -h`.
+
+<!-- p1:referencia:fin -->
