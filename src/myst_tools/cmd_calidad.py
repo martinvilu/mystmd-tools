@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import typer
+from rich.markup import escape
 
 from myst_tools._cli_base import _check_myst_yml, app, archivos_markdown, console, emitir_json
 
@@ -124,3 +125,43 @@ def cmd_check_style(
         raise typer.Exit(code=0)
     else:
         raise typer.Exit(code=1)
+
+
+@app.command("check-a11y")
+def cmd_check_a11y(
+    files: Optional[List[Path]] = typer.Argument(
+        None,
+        help="Archivos o directorios Markdown a auditar.",
+    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+    strict: bool = typer.Option(False, "--strict", help="Sale con 1 también por los avisos, no solo por los errores."),
+    output_json: bool = typer.Option(False, "--json", help="Emite los hallazgos como JSON versionado."),
+) -> None:
+    """Audita accesibilidad: texto alternativo, orden de encabezados, enlaces genéricos y contraste."""
+    from myst_tools.a11y_checker import auditar_accesibilidad
+
+    _check_myst_yml(force)
+    target_files = archivos_markdown(files)
+    hallazgos = []
+    for f in target_files:
+        content = f.read_text(encoding="utf-8", errors="replace")
+        for h in auditar_accesibilidad(content):
+            hallazgos.append({"archivo": str(f), "linea": h.linea, "regla": h.regla,
+                              "severidad": h.severidad, "mensaje": h.mensaje})
+            if not output_json:
+                color = "bold red" if h.severidad == "error" else "yellow"
+                console.print(f"[{color}]{f}:{h.linea}[/{color}] {escape(f'[{h.regla}]')} {escape(h.mensaje)}")
+
+    errores = sum(1 for h in hallazgos if h["severidad"] == "error")
+    avisos = len(hallazgos) - errores
+    codigo = 1 if errores or (strict and avisos) else 0
+    if output_json:
+        emitir_json("check-a11y", {"total": len(hallazgos), "errores": errores, "avisos": avisos,
+                                   "hallazgos": hallazgos})
+        raise typer.Exit(code=codigo)
+    archivos = f"{len(target_files)} archivo{'s' if len(target_files) != 1 else ''}"
+    if not hallazgos:
+        console.print(f"[bold green]✓ Sin problemas de accesibilidad en {archivos}.[/bold green]")
+    else:
+        console.print(f"\n{errores} errores y {avisos} avisos de accesibilidad en {archivos}.")
+    raise typer.Exit(code=codigo)

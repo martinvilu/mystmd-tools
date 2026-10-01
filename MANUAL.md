@@ -14,6 +14,7 @@
 - Verificación ortográfica y gramatical contextualizada mediante LanguageTool, con diccionario técnico de programación.
 - Detección y resolución de colisiones en anclas y etiquetas cruzadas.
 - Generación automatizada de índices temáticos y verificación de consistencia de enlaces.
+- Accesibilidad del material (`check-a11y`): texto alternativo de imágenes y figuras, orden de los encabezados, enlaces genéricos («acá»), contraste de colores en línea, iframes sin título y tablas sin encabezado (criterios de WCAG 2.1 que se ven en el fuente).
 
 ### Límites de Responsabilidad y Delegación (Qué no cubre)
 - Formateo de código fuente en C (delegado a `gaff`).
@@ -66,6 +67,7 @@ myst-tools doctor
 | [`myst-tools check-tables`](#checktables) | Audita tablas Markdown en busca de columnas desalineadas o separadores inválidos. |
 | [`myst-tools fmt-tables`](#fmttables) | Formatea y alinea visualmente las columnas de tablas Markdown. |
 | [`myst-tools check-style`](#checkstyle) | Audita estilo rioplatense (voseo vs tuteo, spanglish). |
+| [`myst-tools check-a11y`](#checka11y) | Audita accesibilidad: texto alternativo, orden de encabezados, enlaces genéricos y contraste. |
 | [`myst-tools extract-c-tests`](#extractctests) | Extrae bloques C hacia un proyecto C compilable con Makefile. |
 | [`myst-tools extract-dict-terms`](#extractdictterms) | Extrae identificadores técnicos C y directivas para el diccionario personalizado de LanguageTool. |
 | [`myst-tools check-links`](#checklinks) | Audita inmutabilidad y sintaxis de enlaces a GitHub. |
@@ -309,6 +311,41 @@ Audita estilo rioplatense (voseo vs tuteo, spanglish).
 #### Ejemplo de Invocación
 ```bash
 myst-tools check-style
+```
+
+### `myst-tools check-a11y`
+
+Audita accesibilidad: texto alternativo, orden de encabezados, enlaces genéricos y contraste.
+
+Revisa la accesibilidad del material con los criterios de WCAG 2.1 que se pueden ver en el fuente. El
+contenido de los bloques de código no se revisa (un `# comentario` ahí no es un encabezado).
+
+| Regla | Severidad | Qué detecta |
+| :--- | :--- | :--- |
+| `alt-faltante` | error (aviso en `{figure}`) | Imagen sin texto alternativo: `![](x.png)`, `<img>` sin `alt`, `{image}`/`{figure}` sin `:alt:`. |
+| `alt-generico` | aviso | Texto alternativo que no describe nada: «imagen», «figura», el nombre del archivo. |
+| `encabezado-salto` | error | Un salto de nivel (`##` → `####`). |
+| `titulo-repetido` | error | Más de un `#` por página (con `title:` en el frontmatter, el primer `#` no cuenta como repetido). |
+| `sin-titulo` | aviso | La página empieza con `##` sin título. |
+| `enlace-generico` | error | Enlaces cuyo texto no dice adónde llevan: «acá», «click aquí», «ver más». |
+| `contraste` | error, o aviso sin fondo declarado | `style="color: …"` con contraste menor que 4.5:1 (sin fondo, contra blanco). |
+| `iframe-sin-titulo` | error | `<iframe>` sin `title`. |
+| `tabla-sin-encabezado` | aviso | `{list-table}` sin `:header-rows:`. |
+
+Sale con 1 si hay errores (con `--strict`, también si hay avisos) y con 0 si no.
+
+#### Opciones y Banderas
+| Opción / Banderas | Descripción |
+| :--- | :--- |
+| `files` | Archivos o directorios Markdown (por defecto, el directorio actual). |
+| `--force`, `-f` | Fuerza la ejecución ignorando myst.yml. |
+| `--strict` | Sale con 1 también por los avisos. |
+| `--json` | Emite los hallazgos como JSON versionado (`errores`, `avisos`, `hallazgos` con `regla` y `severidad`). |
+
+#### Ejemplo de Invocación
+```bash
+myst-tools check-a11y
+myst-tools check-a11y temas/punteros --json
 ```
 
 ### `myst-tools extract-c-tests`

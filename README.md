@@ -18,6 +18,7 @@ Este proyecto está gestionado con [uv](https://github.com/astral-sh/uv).
 - Verificación ortográfica y gramatical contextualizada mediante LanguageTool, con diccionario técnico de programación.
 - Detección y resolución de colisiones en anclas y etiquetas cruzadas.
 - Generación automatizada de índices temáticos y verificación de consistencia de enlaces.
+- Accesibilidad del material (`check-a11y`): texto alternativo de imágenes y figuras, orden de los encabezados, enlaces genéricos («acá»), contraste de colores en línea, iframes sin título y tablas sin encabezado (criterios de WCAG 2.1 que se ven en el fuente).
 
 ### Qué no cubre (Límites y Delegación)
 - Formateo de código fuente en C (delegado a `gaff`).
@@ -162,6 +163,14 @@ Verifica directivas MyST, bloques de admonición y normas de estilo pedagógico.
 myst-tools check-style [ARCHIVOS/DIR...]
 ```
 
+### 10b. `check-a11y`
+Audita la accesibilidad del material: texto alternativo, orden de encabezados, enlaces genéricos,
+contraste, iframes y tablas (ver el [manual](MANUAL.md) para las reglas).
+
+```bash
+myst-tools check-a11y [ARCHIVOS/DIR...] [--strict] [--json]
+```
+
 ### 11. `extract-c-tests`
 Extrae bloques de código C incluidos en el material didáctico para verificación de compilación.
 
@@ -230,6 +239,7 @@ El backend de construcción utilizado es `hatchling`.
 | `myst-tools check-tables` | Audita tablas Markdown en busca de columnas desalineadas o separadores inválidos. |
 | `myst-tools fmt-tables` | Formatea y alinea visualmente las columnas de tablas Markdown. |
 | `myst-tools check-style` | Audita estilo rioplatense (voseo vs tuteo, spanglish). |
+| `myst-tools check-a11y` | Audita accesibilidad: texto alternativo, orden de encabezados, enlaces genéricos y contraste. |
 | `myst-tools extract-c-tests` | Extrae bloques C hacia un proyecto C compilable con Makefile. |
 | `myst-tools extract-dict-terms` | Extrae identificadores técnicos C y directivas para el diccionario personalizado de LanguageTool. |
 | `myst-tools check-links` | Audita inmutabilidad y sintaxis de enlaces a GitHub. |
