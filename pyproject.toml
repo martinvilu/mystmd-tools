@@ -36,9 +36,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/INGCOM-UNRN-P1/myst-tools"
-Repository = "https://github.com/INGCOM-UNRN-P1/myst-tools.git"
-Issues = "https://github.com/INGCOM-UNRN-P1/myst-tools/issues"
+Homepage = "https://github.com/martinvilu/mystmd-tools"
+Repository = "https://github.com/martinvilu/mystmd-tools.git"
+Issues = "https://github.com/martinvilu/mystmd-tools/issues"
 
 [project.scripts]
 myst-tools = "myst_tools.cli:app"
