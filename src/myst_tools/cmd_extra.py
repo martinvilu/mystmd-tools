@@ -59,8 +59,10 @@ def cmd_check_links(
     files: Optional[List[Path]] = typer.Argument(None, help="Archivos Markdown a auditar."),
     force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
     output_json: bool = typer.Option(False, "--json", help="Emite los hallazgos como JSON versionado."),
+    externos: bool = typer.Option(False, "--externos", help="Además, consultar cada enlace externo y marcar los que responden 404/500 o no responden."),
 ) -> None:
-    """Audita inmutabilidad y sintaxis de enlaces a GitHub."""
+    """Audita inmutabilidad y sintaxis de enlaces a GitHub (y, con --externos, enlaces caídos)."""
+    from myst_tools.enlaces_y_bloques import enlaces_caidos, urls_de
     from myst_tools.github_link_auditor import auditar_enlaces_github
 
     _check_myst_yml(force)
@@ -80,15 +82,53 @@ def cmd_check_links(
             if not output_json:
                 console.print(f"[bold yellow]{f.name}:{iss.line_number}[/bold yellow] [{iss.issue_type}] {iss.message}")
 
+    if externos:
+        ubicaciones = [(f, n, u) for f in target_files if f.is_file() and f.suffix.lower() == ".md"
+                       for n, u in urls_de(f.read_text(encoding="utf-8", errors="replace"))]
+        caidos = enlaces_caidos(u for _, _, u in ubicaciones)
+        for f, n, u in ubicaciones:
+            if u in caidos:
+                total_issues += 1
+                mensaje = f"Enlace caído ({caidos[u]}): {u}"
+                hallazgos.append({"archivo": str(f), "linea": n, "tipo": "enlace-caido", "mensaje": mensaje})
+                if not output_json:
+                    console.print(f"[bold red]{f.name}:{n}[/bold red] [enlace-caido] {mensaje}")
+
     if output_json:
         emitir_json("check-links", {"total": total_issues, "hallazgos": hallazgos})
         raise typer.Exit(code=1 if total_issues else 0)
 
     if total_issues == 0:
-        console.print("[bold green]✓ Todos los enlaces a GitHub cumplen con las pautas de inmutabilidad.[/bold green]")
+        console.print("[bold green]✓ Todos los enlaces a GitHub cumplen con las pautas de inmutabilidad"
+                      + (" y los externos responden." if externos else ".") + "[/bold green]")
         raise typer.Exit(code=0)
     else:
         raise typer.Exit(code=1)
+
+
+@app.command("check-code-lang")
+def cmd_check_code_lang(
+    files: Optional[List[Path]] = typer.Argument(None, help="Archivos Markdown a auditar."),
+    force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+    output_json: bool = typer.Option(False, "--json", help="Emite los hallazgos como JSON versionado."),
+) -> None:
+    """Bloques de código sin lenguaje (``` en lugar de ```c): sin resaltado ni anuncio accesible."""
+    from myst_tools.enlaces_y_bloques import bloques_sin_lenguaje
+
+    _check_myst_yml(force)
+    hallazgos = []
+    for f in archivos_markdown(files):
+        if not f.is_file() or f.suffix.lower() != ".md":
+            continue
+        for h in bloques_sin_lenguaje(f.read_text(encoding="utf-8", errors="replace")):
+            hallazgos.append({"archivo": str(f), "linea": h.linea, "tipo": h.tipo, "mensaje": h.mensaje})
+            if not output_json:
+                console.print(f"[bold yellow]{f.name}:{h.linea}[/bold yellow] [{h.tipo}] {h.mensaje}")
+    if output_json:
+        emitir_json("check-code-lang", {"total": len(hallazgos), "hallazgos": hallazgos})
+    elif not hallazgos:
+        console.print("[bold green]✓ Todos los bloques de código declaran su lenguaje.[/bold green]")
+    raise typer.Exit(code=1 if hallazgos else 0)
 
 
 @app.command("doctor")

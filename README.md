@@ -186,10 +186,21 @@ myst-tools extract-dict-terms [ARCHIVOS/DIR...]
 ```
 
 ### 13. `check-links`
-Valida la integridad de enlaces internos y referencias cruzadas entre documentos.
+Audita los enlaces a GitHub (que apunten a un commit o tag, no a una rama que cambia). Con
+`--externos` además consulta cada enlace http(s) (una vez por URL, en paralelo) y marca los que
+responden 404, 500 o no responden.
 
 ```bash
-myst-tools check-links [ARCHIVOS/DIR...]
+myst-tools check-links [ARCHIVOS/DIR...] [--externos]
+```
+
+### 14. `check-code-lang`
+Marca los bloques de código abiertos con ``` sin lenguaje (```c, ```bash, ```text): quedan sin
+resaltado y el lector de pantalla no sabe anunciarlos. Los bloques de directiva (```{note}) no
+cuentan.
+
+```bash
+myst-tools check-code-lang [ARCHIVOS/DIR...]
 ```
 
 ## Desarrollo
@@ -242,7 +253,8 @@ El backend de construcción utilizado es `hatchling`.
 | `myst-tools check-a11y` | Audita accesibilidad: texto alternativo, orden de encabezados, enlaces genéricos y contraste. |
 | `myst-tools extract-c-tests` | Extrae bloques C hacia un proyecto C compilable con Makefile. |
 | `myst-tools extract-dict-terms` | Extrae identificadores técnicos C y directivas para el diccionario personalizado de LanguageTool. |
-| `myst-tools check-links` | Audita inmutabilidad y sintaxis de enlaces a GitHub. |
+| `myst-tools check-links` | Audita inmutabilidad y sintaxis de enlaces a GitHub (y, con --externos, enlaces caídos). |
+| `myst-tools check-code-lang` | Bloques de código sin lenguaje (``` en lugar de ```c): sin resaltado ni anuncio accesible. |
 | `myst-tools doctor` | Verifica el estado del entorno de MYST-TOOLS (Python, Node/myst, LanguageTool, Typst). |
 | `myst-tools check-c-snippets` | Verifica con `gcc -fsyntax-only` que los bloques C compilen, también como fragmentos (requiere gcc). |
 | `myst-tools to-typst` | Convierte encabezados de un MyST Markdown a una plantilla Typst. |
@@ -254,7 +266,7 @@ Ayuda de cada comando: `myst-tools <comando> -h`.
 
 ### Salida JSON
 
-Con `--json`, estos comandos emiten el resultado como JSON por la salida estándar, para usarlo desde scripts, ripley o dredd: `myst-tools spellcheck`, `myst-tools check-tables`, `myst-tools check-style`, `myst-tools check-a11y`, `myst-tools check-links`, `myst-tools doctor`, `myst-tools check-c-snippets`, `myst-tools to-typst`, `myst-tools extract-exercises`, `myst-tools glossary`. El de `doctor --json` lleva `schema_version` y `ok`.
+Con `--json`, estos comandos emiten el resultado como JSON por la salida estándar, para usarlo desde scripts, ripley o dredd: `myst-tools spellcheck`, `myst-tools check-tables`, `myst-tools check-style`, `myst-tools check-a11y`, `myst-tools check-links`, `myst-tools check-code-lang`, `myst-tools doctor`, `myst-tools check-c-snippets`, `myst-tools to-typst`, `myst-tools extract-exercises`, `myst-tools glossary`. El de `doctor --json` lleva `schema_version` y `ok`.
 
 ### Códigos de salida
 
