@@ -51,7 +51,7 @@ def run_generate_rules_index(reglas_dir='./reglas'):
         
         if rules:
             output.append(f"## {file_title}")
-            for label, title in rules:
+            for label, _title in rules:
                 output.append(f"* {{ref}}`{label}`")
             output.append("") # Spacer
             

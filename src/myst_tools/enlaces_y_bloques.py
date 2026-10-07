@@ -56,7 +56,7 @@ def enlaces_caidos(urls: Iterable[str], hilos: int = 8, timeout: float = 10.0) -
     unicas = sorted(set(urls))
     with ThreadPoolExecutor(max_workers=hilos) as grupo:
         estados = list(grupo.map(lambda u: estado_de(u, timeout), unicas))
-    return {u: e for u, e in zip(unicas, estados) if e}
+    return {u: e for u, e in zip(unicas, estados, strict=False) if e}
 
 
 def bloques_sin_lenguaje(contenido: str) -> List[Hallazgo]:
