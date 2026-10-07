@@ -198,8 +198,8 @@ def auditar_accesibilidad(contenido: str) -> List[HallazgoA11y]:
             # Opciones de la directiva (:alt:, :header-rows:…), al principio del contenido.
             opciones: Dict[str, str] = {}
             j = i + 1
-            while j < len(lineas) and RE_OPCION.match(lineas[j]):
-                nombre, valor = RE_OPCION.match(lineas[j]).groups()
+            while j < len(lineas) and (m_opcion := RE_OPCION.match(lineas[j])):
+                nombre, valor = m_opcion.groups()
                 opciones[nombre] = valor
                 j += 1
             if directiva in ("image", "figure"):

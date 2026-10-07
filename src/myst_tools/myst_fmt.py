@@ -77,10 +77,10 @@ def _is_close(line: str, top: Fence) -> bool:
     s = line.rstrip()
     if top.orig_kind == 'colon':
         m = _COLON_CLOSE.match(s)
-        return bool(m) and len(m.group(1)) >= top.orig_len
+        return m is not None and len(m.group(1)) >= top.orig_len
     else:
         m = _BTICK_CLOSE.match(s)
-        return bool(m) and len(m.group(1)) >= top.orig_len
+        return m is not None and len(m.group(1)) >= top.orig_len
 
 
 def _prescan_colon_lengths(lines: list[str]) -> dict[int, int]:
@@ -424,9 +424,8 @@ def run_myst_fmt(
         path = Path(f)
         if path.is_dir():
             # Buscar todos los .md recursivamente
-            md_files = path.rglob("*.md")
             # Filtrar ocultos
-            md_files = [p for p in md_files if not any(part.startswith('.') for part in p.parts[:-1])]
+            md_files = [p for p in path.rglob("*.md") if not any(part.startswith('.') for part in p.parts[:-1])]
             expanded_files.extend(md_files)
         elif path.is_file():
             expanded_files.append(path)
@@ -437,10 +436,10 @@ def run_myst_fmt(
     # Remover duplicados manteniendo el orden
     seen = set()
     unique_files = []
-    for f in expanded_files:
-        if f not in seen:
-            seen.add(f)
-            unique_files.append(f)
+    for archivo in expanded_files:
+        if archivo not in seen:
+            seen.add(archivo)
+            unique_files.append(archivo)
 
     if not unique_files:
         print('No se encontraron archivos .md para formatear.', file=sys.stderr)

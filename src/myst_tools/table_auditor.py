@@ -47,7 +47,7 @@ def parse_markdown_tables(content: str) -> List[Dict[str, Any]]:
 
 def auditar_tabla(raw_rows: List[str], start_line: int = 1) -> List[TableIssue]:
     """Audita inconsistencias de columnas y separadores en una tabla."""
-    issues = []
+    issues: List[TableIssue] = []
     if len(raw_rows) < 2:
         return issues
 

@@ -173,7 +173,7 @@ def cmd_spellcheck(
     for iss in todos_los_issues:
         sug_txt = ", ".join(iss.replacements[:2]) if iss.replacements else "[dim]N/A[/dim]"
         tabla.add_row(
-            f"{iss.file_path.name}:{iss.line}:{iss.column}",
+            f"{iss.file_path.name if iss.file_path else '—'}:{iss.line}:{iss.column}",
             iss.original_word or iss.context[:20],
             iss.rule_id,
             sug_txt,
