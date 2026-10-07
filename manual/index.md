@@ -338,7 +338,7 @@ graph TD
 | :--- | :--- | :--- |
 | **Entradas (Inputs)** | - `Apuntes, guías de Deckard, documentación de Corbel, reglas de Gaff` | Código fuente, AST, binarios, testcases, contratos |
 | **Salidas (Outputs)** | - `Jupyter Book / MyST HTML (sitios web de cátedra)` | Informes Markdown, diagnósticos Rich, JSON, actas |
-| **Sincronización** | `deckard`, `corbel`, `gaff`, `moodle-toolbox` | Validación cruzada, flags compartidos y autofix |
+| **Sincronización** | `deckard`, `corbel`, `gaff`, `voight` | Validación cruzada, flags compartidos y autofix |
 
 ### Pipeline de Integración Recomendado
 

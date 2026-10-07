@@ -39,7 +39,7 @@ __all__ = [
 
 def __getattr__(name):
     # `app`/`main` viven en myst_tools.cli, que depende de typer/rich. Se cargan
-    # perezosamente para que consumidores externos (alucarD, idkfa, moodle-toolbox)
+    # perezosamente para que consumidores externos (alucarD, idkfa, voight)
     # puedan importar submódulos livianos (p. ej. languagetool_checker) sin que
     # typer sea una dependencia transitiva obligatoria de todo el paquete.
     if name in ("app", "main"):
