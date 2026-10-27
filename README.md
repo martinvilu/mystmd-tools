@@ -251,6 +251,7 @@ El backend de construcción utilizado es `hatchling`.
 | `myst-tools fmt-tables` | Formatea y alinea visualmente las columnas de tablas Markdown. |
 | `myst-tools check-style` | Audita estilo rioplatense (voseo vs tuteo, spanglish). |
 | `myst-tools check-a11y` | Audita accesibilidad: texto alternativo, orden de encabezados, enlaces genéricos y contraste. |
+| `myst-tools check-catalog-links` | Valida que toda referencia, enlace o ancla a reglas 0xXXXXh y satélites coincida con el catálogo oficial. |
 | `myst-tools extract-c-tests` | Extrae bloques C hacia un proyecto C compilable con Makefile. |
 | `myst-tools extract-dict-terms` | Extrae identificadores técnicos C y directivas para el diccionario personalizado de LanguageTool. |
 | `myst-tools check-links` | Audita inmutabilidad y sintaxis de enlaces a GitHub (y, con --externos, enlaces caídos). |
@@ -266,7 +267,7 @@ Ayuda de cada comando: `myst-tools <comando> -h`.
 
 ### Salida JSON
 
-Con `--json`, estos comandos emiten el resultado como JSON por la salida estándar, para usarlo desde scripts, ripley o dredd: `myst-tools spellcheck`, `myst-tools check-tables`, `myst-tools check-style`, `myst-tools check-a11y`, `myst-tools check-links`, `myst-tools check-code-lang`, `myst-tools doctor`, `myst-tools check-c-snippets`, `myst-tools to-typst`, `myst-tools extract-exercises`, `myst-tools glossary`. El de `doctor --json` lleva `schema_version` y `ok`.
+Con `--json`, estos comandos emiten el resultado como JSON por la salida estándar, para usarlo desde scripts, ripley o dredd: `myst-tools spellcheck`, `myst-tools check-tables`, `myst-tools check-style`, `myst-tools check-a11y`, `myst-tools check-catalog-links`, `myst-tools check-links`, `myst-tools check-code-lang`, `myst-tools doctor`, `myst-tools check-c-snippets`, `myst-tools to-typst`, `myst-tools extract-exercises`, `myst-tools glossary`. El de `doctor --json` lleva `schema_version` y `ok`.
 
 ### Códigos de salida
 

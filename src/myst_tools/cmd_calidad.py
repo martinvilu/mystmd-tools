@@ -165,3 +165,49 @@ def cmd_check_a11y(
     else:
         console.print(f"\n{errores} errores y {avisos} avisos de accesibilidad en {archivos}.")
     raise typer.Exit(code=codigo)
+
+
+@app.command("check-catalog-links")
+def cmd_check_catalog_links(
+    files: Optional[List[Path]] = typer.Argument(
+        None,
+        help="Archivos o directorios Markdown a auditar.",
+    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Fuerza la ejecución ignorando myst.yml."),
+    output_json: bool = typer.Option(False, "--json", help="Emite los hallazgos como JSON versionado."),
+) -> None:
+    """Valida que toda referencia, enlace o ancla a reglas 0xXXXXh y satélites coincida con el catálogo oficial."""
+    from myst_tools.catalog_links_checker import auditar_enlaces_catalogo
+
+    _check_myst_yml(force)
+    target_files = archivos_markdown(files)
+    hallazgos = []
+    for f in target_files:
+        content = f.read_text(encoding="utf-8", errors="replace")
+        for h in auditar_enlaces_catalogo(content, archivo=f):
+            hallazgos.append(h.to_dict(str(f)))
+            if not output_json:
+                sug = f" ({h.sugerencia})" if h.sugerencia else ""
+                console.print(
+                    f"[bold red]{f}:{h.linea}[/bold red] {escape(f'[{h.regla}]')} "
+                    f"{escape(h.mensaje)}{escape(sug)}"
+                )
+
+    errores = sum(1 for h in hallazgos if h["severidad"] == "error")
+    codigo = 1 if errores else 0
+    if output_json:
+        emitir_json(
+            "check-catalog-links",
+            {"total": len(hallazgos), "errores": errores, "hallazgos": hallazgos},
+        )
+        raise typer.Exit(code=codigo)
+
+    archivos = f"{len(target_files)} archivo{'s' if len(target_files) != 1 else ''}"
+    if not hallazgos:
+        console.print(
+            f"[bold green]✓ Todas las referencias a reglas 0xXXXXh y satélites coinciden con el catálogo oficial en {archivos}.[/bold green]"
+        )
+    else:
+        console.print(f"\n{errores} error(es) de catálogo en {archivos}.")
+    raise typer.Exit(code=codigo)
+
