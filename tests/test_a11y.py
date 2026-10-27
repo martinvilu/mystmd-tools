@@ -25,9 +25,19 @@ def test_directivas_de_imagen_y_tablas():
           "```{image} i.png\n:alt: i.png\n```\n\n"
           ":::{image} j.png\n:alt: Árbol binario con tres niveles\n:::\n\n"
           "```{list-table}\n* - a\n```\n\n"
-          "```{list-table}\n:header-rows: 1\n* - a\n```\n")
-    assert _reglas(md) == [(3, "alt-faltante", "aviso"), (9, "alt-generico", "aviso"),
-                           (17, "tabla-sin-encabezado", "aviso")]
+          "```{list-table}\n:header-rows: 1\n* - a\n```\n\n"
+          "```{csv-table}\n1,2\n```\n\n"
+          "|   |   |\n| --- | --- |\n| 1 | 2 |\n\n"
+          "<table><tr><td>sin th</td></tr></table>\n"
+          "<table><tr><th>Col</th></tr><tr><td>ok</td></tr></table>\n")
+    assert _reglas(md) == [
+        (3, "alt-faltante", "aviso"),
+        (9, "alt-generico", "aviso"),
+        (17, "tabla-sin-encabezado", "error"),
+        (26, "tabla-sin-encabezado", "error"),
+        (30, "tabla-sin-encabezado", "error"),
+        (34, "tabla-sin-encabezado", "error"),
+    ]
 
 
 def test_orden_de_encabezados_y_codigo():
@@ -42,13 +52,14 @@ def test_orden_de_encabezados_y_codigo():
 
 
 def test_enlaces_iframes_y_contraste():
-    md = ("# T\n\nMirá [acá](x.md) y la [guía de estilo](guia.md).\n"
+    md = ("# T\n\nMirá [acá](x.md), [](vacio.md) y la [guía de estilo](guia.md).\n"
           "<iframe src=\"https://youtube.com/embed/x\"></iframe>\n"
           "<iframe title=\"Video: punteros\" src=\"y\"></iframe>\n"
           "<span style=\"color: #aaa\">gris</span>\n"
           "<span style=\"color: #777; background-color: #555\">x</span>\n"
           "<span style=\"color: #222\">ok</span>\n")
-    assert _reglas(md) == [(3, "enlace-generico", "error"), (4, "iframe-sin-titulo", "error"),
+    assert _reglas(md) == [(3, "enlace-generico", "error"), (3, "enlace-sin-texto", "error"),
+                           (4, "iframe-sin-titulo", "error"),
                            (6, "contraste", "aviso"), (7, "contraste", "error")]
     assert round(contraste(color_a_rgb("#000"), color_a_rgb("white")), 1) == 21.0
     assert color_a_rgb("rgb(255, 0, 0)") == (255, 0, 0) and color_a_rgb("var(--x)") is None

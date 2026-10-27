@@ -41,9 +41,11 @@ RE_APERTURA = re.compile(r"^(\s*)(`{3,}|~{3,}|:{3,})\s*(\{([\w:-]+)\})?\s*(.*)$"
 RE_OPCION = re.compile(r"^\s*:([\w-]+):\s*(.*)$")
 RE_ENCABEZADO = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 RE_IMAGEN = re.compile(r"!\[([^\]]*)\]\(\s*<?([^)\s>]+)")
-RE_ENLACE = re.compile(r"(?<!!)\[([^\]]+)\]\((?!\s*\))[^)]*\)")
+RE_ENLACE = re.compile(r"(?<!!)\[([^\]]*)\]\((?!\s*\))([^)]+)\)")
 RE_IMG_HTML = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
 RE_IFRAME = re.compile(r"<iframe\b[^>]*>", re.IGNORECASE)
+RE_TABLE_OPEN = re.compile(r"<table\b([^>]*)>", re.IGNORECASE)
+RE_SEPARADOR_TABLA = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$")
 RE_ESTILO = re.compile(r"style\s*=\s*([\"'])(.*?)\1", re.IGNORECASE)
 RE_ATRIBUTO_ALT = re.compile(r"\balt\s*=\s*([\"'])(.*?)\1", re.IGNORECASE)
 RE_TITULO_FRONTMATTER = re.compile(r"^title\s*:\s*\S", re.MULTILINE)
@@ -134,7 +136,11 @@ def _revisar_linea(linea: str, numero: int, hallazgos: List[HallazgoA11y]) -> No
         if hallazgo:
             hallazgos.append(hallazgo)
     for m in RE_ENLACE.finditer(linea):
-        if _normalizar(m.group(1)) in {_normalizar(e) for e in ENLACES_GENERICOS}:
+        if not m.group(1).strip():
+            hallazgos.append(HallazgoA11y(numero, "enlace-sin-texto", "error",
+                                          f"El enlace a {m.group(2).strip()} no tiene texto: un lector de pantalla "
+                                          "no puede nombrarlo."))
+        elif _normalizar(m.group(1)) in {_normalizar(e) for e in ENLACES_GENERICOS}:
             hallazgos.append(HallazgoA11y(numero, "enlace-generico", "error",
                                           f"El enlace «{m.group(1)}» no dice adónde lleva: un lector de pantalla "
                                           "lista los enlaces sueltos, así que el texto tiene que nombrar el destino."))
@@ -214,12 +220,44 @@ def auditar_accesibilidad(contenido: str) -> List[HallazgoA11y]:
                     hallazgo = _revisar_alt(opciones["alt"], argumento, numero, "La imagen")
                     if hallazgo and hallazgo.regla == "alt-generico":
                         hallazgos.append(hallazgo)
-            elif directiva == "list-table" and "header-rows" not in opciones:
-                hallazgos.append(HallazgoA11y(numero, "tabla-sin-encabezado", "aviso",
+            elif directiva == "list-table" and (
+                "header-rows" not in opciones or opciones["header-rows"].strip() == "0"
+            ):
+                hallazgos.append(HallazgoA11y(numero, "tabla-sin-encabezado", "error",
                                               "La {list-table} no tiene :header-rows:: sin fila de encabezado, un "
                                               "lector de pantalla no puede decir a qué columna pertenece cada dato."))
+            elif directiva == "csv-table" and not opciones.get("header", "").strip() and (
+                "header-rows" not in opciones or opciones["header-rows"].strip() == "0"
+            ):
+                hallazgos.append(HallazgoA11y(numero, "tabla-sin-encabezado", "error",
+                                              "La {csv-table} no tiene :header: ni :header-rows:: sin fila de "
+                                              "encabezado, un lector de pantalla no puede decir a qué columna "
+                                              "pertenece cada dato."))
             i = j
             continue
+
+        if RE_SEPARADOR_TABLA.match(linea) and i > inicio and "|" in lineas[i - 1]:
+            celdas = [c.strip() for c in lineas[i - 1].strip().strip("|").split("|")]
+            if not celdas or all(not c for c in celdas):
+                hallazgos.append(HallazgoA11y(i, "tabla-sin-encabezado", "error",
+                                              "La tabla Markdown tiene la fila de encabezado vacía: completá los "
+                                              "títulos de las columnas."))
+
+        for m_tbl in RE_TABLE_OPEN.finditer(linea):
+            attrs_tbl = m_tbl.group(1) or ""
+            if re.search(r"\brole\s*=\s*([\"'])(presentation|none)\1", attrs_tbl, re.IGNORECASE):
+                continue
+            bloque_tbl = linea[m_tbl.start():]
+            k = i + 1
+            while "</table>" not in bloque_tbl.lower() and k < len(lineas):
+                bloque_tbl += "\n" + lineas[k]
+                k += 1
+            ths = re.findall(r"<th\b[^>]*>(.*?)</th>", bloque_tbl, re.IGNORECASE | re.DOTALL)
+            th_con_texto = any(re.sub(r"<[^>]+>", "", th).strip() for th in ths)
+            if not ths or not th_con_texto:
+                hallazgos.append(HallazgoA11y(numero, "tabla-sin-encabezado", "error",
+                                              "La <table> HTML no tiene celdas de encabezado (<th>) con texto "
+                                              "descriptivo."))
 
         encabezado = RE_ENCABEZADO.match(linea)
         if encabezado:
